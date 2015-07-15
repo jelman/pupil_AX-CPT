@@ -21,7 +21,7 @@ def filter_theBlock(df):
 def filter_RT(df, minRT=200, maxRT=1300):
     """ Set trials with an RT below 200ms or above 1300ms to 
     missing """
-    idx = (df['TargetSlide.RT']>200.0)|(df['TargetSlide.RT']<1300)
+    idx = (df['TargetSlide.RT']<200.0)|(df['TargetSlide.RT']>1300)
     df.ix[idx,'TargetSlide.ACC'] = 0    
     df.ix[idx,'TargetSlide.RESP'] = np.nan   
     return df
@@ -183,10 +183,10 @@ fname = 'AX-CPT_V2_merged.csv' # Name of input data file
 infile = os.path.join(datapath,fname) # Input file
 outname = 'AX-CPT_V2_processed.csv' # Name of file to save out
 outfile = os.path.join(datapath, outname) # Output file
+trialtypes = ['AX','BX','AY','BY'] # These should not be changed for now
 ##############################################################
 
 if __name__ == "__main__":
-    trialtypes = ['AX','BX','AY','BY'] # These are hardcoded for now
     main(infile, outfile, trialtypes)
 
 
