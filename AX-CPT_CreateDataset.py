@@ -161,8 +161,11 @@ def get_dprime(df_rates):
                                     df_rates['bxhits'],df_rates['bxmisses'])  
     return df_rates
 
-def apply_excludes(df):
-    pass
+def apply_excludes(df_rates):
+    exclude_idx = ((df_rates['bymisses'] + df_rates['bynr'] >2) | 
+                    (df_rates['bxmisses'] + df_rates['bxnr'] > 14) |
+                    (df_rates['axmisses'] + df_rates['axnr'] > 43))
+    return df_rates.ix[~exclude_idx]
     
 def main(infile, outfile, trialtypes):
     axcpt_raw = pd.read_csv(infile, sep=',')
