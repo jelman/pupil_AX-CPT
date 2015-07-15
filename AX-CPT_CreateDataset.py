@@ -162,6 +162,10 @@ def get_dprime(df_rates):
     return df_rates
 
 def apply_excludes(df_rates):
+    """ Applies excludes based on error rates in AX, BX and BY trials. 
+    Adds counts errors as incorrect responses (misses) plus no responses
+    trials to account with subjects that had very low miss rate but very 
+    high no response rate. """
     exclude_idx = ((df_rates['bymisses'] + df_rates['bynr'] >2) | 
                     (df_rates['bxmisses'] + df_rates['bxnr'] > 14) |
                     (df_rates['axmisses'] + df_rates['axnr'] > 43))
