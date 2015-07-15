@@ -11,13 +11,14 @@ from sas7bdat import SAS7BDAT
 import re
 import os
 
-def get_BU_sublist(pth,globstr):
+def get_sublist(pth,globstr):
     filelist = glob(os.path.join(pth,globstr))
     sublist = [re.sub('.*[Left,Right]-','',w) for w in filelist]
     sublist = [re.sub('.txt','',w) for w in sublist]
     sublist = [re.sub('-1','A',w) for w in sublist]
     sublist = [re.sub('-2','B',w) for w in sublist]
     return sublist
+    
 #################################################################
 
 # Get VETSA 2 data  
@@ -42,10 +43,10 @@ vetsaidUC = pd.Series(axcptUC.SubjectID.unique(), name='vetsaid')
 # Computer 103
 globstr = '*.txt'
 pth = 'K:/data/AX-CPT/CPT BU V2/AX CPT 103'
-vetsaidBU103 = pd.Series(get_BU_sublist(pth,globstr), name='vetsaid')
+vetsaidBU103 = pd.Series(get_sublist(pth,globstr), name='vetsaid')
 # Computer 104
 pth = 'K:/data/AX-CPT/CPT BU V2/AX CPT 104'
-vetsaidBU104 = pd.Series(get_BU_sublist(pth,globstr), name='vetsaid')
+vetsaidBU104 = pd.Series(get_sublist(pth,globstr), name='vetsaid')
 
 # Find subjects with data on both computers
 # Duplicate files have been manually removed. This should not 
@@ -62,7 +63,7 @@ vetsaidBU = pd.concat([vetsaidBU103,vetsaidBU104], ignore_index=True)
 UC_BUdups = list(set(vetsaidBU).intersection(set(vetsaidUC)))
 
 # Find BU practice subjects. These should not be included in the main dataset.
-# Practice files have been manually moved to practice subfiled. This should 
+# Practice files have been manually moved to practice subfolder. This should 
 # not find anymore subjects.
 BUpractice = list(set(vetsaidBU).difference(set(vetsaid)))
 BUpractice = pd.Series(BUpractice, name='vetsaid')
