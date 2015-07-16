@@ -134,7 +134,7 @@ def calc_hitmiss_rt(hits, misses):
     missrt = 1. - hitrt    
     return hitrt, missrt
     
-def get_hitmiss_rt(summed_df, trialtypes):
+def get_hitmiss_rt(summed_df, trialtypes=['AX','BX','AY','BY']):
     """ Loops over trial types and inserts hit and miss rate for each into 
     the passed dataframe. """
     for trial in trialtypes:
@@ -171,12 +171,12 @@ def apply_excludes(df_rates):
                     (df_rates['axmisses'] + df_rates['axnr'] > 43))
     return df_rates.ix[~exclude_idx]
     
-def main(infile, outfile, trialtypes):
+def main(infile, outfile):
     axcpt_raw = pd.read_csv(infile, sep=',')
     axcpt_filt = apply_filters(axcpt_raw)
     axcpt_filt = set_miss_RT(axcpt_filt)
     axcpt_summed = summarise_subjects(axcpt_filt)
-    axcpt_rates = get_hitmiss_rt(axcpt_summed, trialtypes)
+    axcpt_rates = get_hitmiss_rt(axcpt_summed)
     axcpt_rates = get_dprime(axcpt_rates)
     axcpt_clean = apply_excludes(axcpt_rates)    
     axcpt_clean.to_csv(outfile, index=False)
@@ -185,15 +185,14 @@ def main(infile, outfile, trialtypes):
 ##############################################################
 ############## Set paths and parameters ######################
 ##############################################################
-datapath = 'K:/data/AX-CPT' # Specify data path of AX-CPT data
+datapath = 'K:/AX-CPT/data' # Specify data path of AX-CPT data
 fname = 'AX-CPT_V2_merged.csv' # Name of input data file
 infile = os.path.join(datapath,fname) # Input file
 outname = 'AX-CPT_V2_processed.csv' # Name of file to save out
 outfile = os.path.join(datapath, outname) # Output file
-trialtypes = ['AX','BX','AY','BY'] # These should not be changed for now
 ##############################################################
 
 if __name__ == "__main__":
-    main(infile, outfile, trialtypes)
+    main(infile, outfile)
 
 
