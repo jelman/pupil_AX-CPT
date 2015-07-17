@@ -127,32 +127,32 @@ def summarise_subjects(df):
                             for col in summarydf.columns.values]  
     return summarydf
 
-def calc_hitmiss_rt(hits, misses):
+def calc_hitmiss_rate(hits, misses):
     """ Given the number of hits and misses for a particular trial type, 
     calculates the hit rate and miss rate. """
-    hitrt = hits / (hits + misses)
-    missrt = 1. - hitrt    
-    return hitrt, missrt
+    hitrate = hits / (hits + misses)
+    missrate = 1. - hitrate    
+    return hitrate, missrate
     
-def get_hitmiss_rt(summed_df, trialtypes=['AX','BX','AY','BY']):
+def get_hitmiss_rate(summed_df, trialtypes=['AX','BX','AY','BY']):
     """ Loops over trial types and inserts hit and miss rate for each into 
     the passed dataframe. """
     for trial in trialtypes:
         trial = trial.lower()
         hits = summed_df[''.join([trial,'hits'])]
         misses = summed_df[''.join([trial,'misses'])]
-        hitrtvarname = ''.join([trial,'hitrt'])
-        missrtvarname = ''.join([trial,'missrt'])
-        summed_df[hitrtvarname], summed_df[missrtvarname] = calc_hitmiss_rt(hits,misses)
+        hitratevarname = ''.join([trial,'hitrate'])
+        missratevarname = ''.join([trial,'missrate'])
+        summed_df[hitratevarname], summed_df[missratevarname] = calc_hitmiss_rate(hits,misses)
     return summed_df
     
 def calc_dprime(axhits, axmisses, bxhits, bxmisses):
     """ Calculates d' score from AX and BX trials. AX trials are used for 
     the hit rate and BX for the false alarm rate. These rates are adjusted 
     to avoid dividing by 0. """
-    axhitrt = (axhits + 0.5)/(axhits + axmisses + .01)
-    bxfart = (bxmisses + 0.5)/(bxhits + bxmisses + 1.)
-    dprime = axhitrt - bxfart    
+    axhitrate = (axhits + 0.5)/(axhits + axmisses + .01)
+    bxfarate = (bxmisses + 0.5)/(bxhits + bxmisses + 1.)
+    dprime = axhitrate - bxfarate    
     return dprime   
 
 def get_dprime(df_rates):
@@ -176,7 +176,7 @@ def main(infile, outfile):
     axcpt_filt = apply_filters(axcpt_raw)
     axcpt_filt = set_miss_RT(axcpt_filt)
     axcpt_summed = summarise_subjects(axcpt_filt)
-    axcpt_rates = get_hitmiss_rt(axcpt_summed)
+    axcpt_rates = get_hitmiss_rate(axcpt_summed)
     axcpt_rates = get_dprime(axcpt_rates)
     axcpt_clean = apply_excludes(axcpt_rates)    
     axcpt_clean.to_csv(outfile, index=False)
