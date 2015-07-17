@@ -21,7 +21,7 @@ def filter_theBlock(df):
 def filter_RT(df, minRT=200, maxRT=1300):
     """ Set trials with an RT below 200ms or above 1300ms to 
     missing """
-    idx = (df['TargetSlide.RT']<200.0)|(df['TargetSlide.RT']>1300)
+    idx = (df['TargetSlide.RT']<minRT)|(df['TargetSlide.RT']>maxRT)
     df.ix[idx,'TargetSlide.ACC'] = 0    
     df.ix[idx,'TargetSlide.RESP'] = np.nan   
     return df
