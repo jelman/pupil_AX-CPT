@@ -97,12 +97,13 @@ def calc_trial_scores(trialdf):
     misses =  calc_misses(trialdf)
     NR = calc_NR(trialdf)
     meanRT = calc_meanRT(trialdf)
+    medianRT = calc_medianRT(trialdf)
     stdRT = calc_stdRT(trialdf)
     trimmed_meanRT = calc_trimmed_meanRT(trialdf, meanRT, stdRT)
     cvRT = calc_cvRT(meanRT, stdRT)
     summary_scores = pd.Series({'hits': hits, 'misses': misses, 'NR': NR,
                         'meanRT': meanRT, 'trimmed_meanRT': trimmed_meanRT,
-                        'stdRT': stdRT, 'cvRT': cvRT})
+                        'medianRT': medianRT, 'stdRT': stdRT, 'cvRT': cvRT})
     return summary_scores
 
 def calc_subject_scores(subjectdf):
