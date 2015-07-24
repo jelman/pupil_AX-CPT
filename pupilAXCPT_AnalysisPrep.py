@@ -18,7 +18,7 @@ fname = 'K:/pupillometry/data/cognitive/vetsa2merged_23apr2015.sas7bdat'
 with SAS7BDAT(fname) as f:
     cogdf = f.to_data_frame()
     
-fname = 'K:/pupillometry/data/cognitive/CogTestingVariables.csv'
+fname = 'K:/AX-CPT/data/AX-CPT_CogVariables.csv'
 cogvars = pd.read_csv(fname)
 cogdf = cogdf[cogvars['NAME']]
 
@@ -34,3 +34,9 @@ cogdf.ix[cogdf['NUMHINJ_v2']==99,'NUMHINJ_v2'] = None
 # Save out cognitive data
 outfile = os.path.join(datadir, 'cogData.csv')
 cogdf.to_csv(outfile, index=False)
+
+## Load pupil data
+pupildf = pd.read_csv('K:/data/Pupillometry/pupilDS_long.csv')
+
+## Load AX-CPT data
+axcptdf = pd.read_csv('K:/data/AX-CPT/AX-CPT_V2_processed.csv')
