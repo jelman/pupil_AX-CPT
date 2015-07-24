@@ -40,3 +40,18 @@ pupildf = pd.read_csv('K:/data/Pupillometry/pupilDS_long.csv')
 
 ## Load AX-CPT data
 axcptdf = pd.read_csv('K:/data/AX-CPT/AX-CPT_V2_processed.csv')
+
+## Merge datasets
+pupil_axcpt = pd.merge(pupildf, axcptdf, left_on='vetsaid', 
+                   right_on='SubjectID', how='left')                  
+pupil_axcpt = pd.merge(pupil_axcpt, cogdf, left_on='vetsaid', 
+                   right_on='vetsaid', how='left')
+pupil_axcpt = pupil_axcpt.drop(['case_y','twin_y','zyg14_y',
+                                      'SubjectID'], axis=1)
+pupil_axcpt = pupil_axcpt.rename(columns={'case_x':'case',
+                                                'twin_x':'twin',
+                                                'zyg14_x':'zyg14'})
+                                                
+# Save out files
+outfile = os.path.join(datadir,'pupil_AX-CPT.csv')
+pupil_axcpt.to_csv(outfile, index=False)                                                
