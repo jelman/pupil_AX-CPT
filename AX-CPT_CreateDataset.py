@@ -71,7 +71,7 @@ def calc_stdRT(trialdf):
     """ Calculate standard deviation of RT for correct trials. """
     return trialdf.ix[trialdf['TargetSlide.ACC']==1,'TargetSlide.RT'].std()    
 
-def calc_trimmed_meanRT(trialdf, meanRT, stdRT):
+def calc_trim_meanRT(trialdf, meanRT, stdRT):
     """ Calculate trimmed mean of RT for correct trials. Excludes any 
     trials that fall outside of 3 standard deviations of the mean. """
     idx = ((trialdf['TargetSlide.ACC']==1) &
@@ -99,10 +99,10 @@ def calc_trial_scores(trialdf):
     meanRT = calc_meanRT(trialdf)
     medianRT = calc_medianRT(trialdf)
     stdRT = calc_stdRT(trialdf)
-    trimmed_meanRT = calc_trimmed_meanRT(trialdf, meanRT, stdRT)
+    trim_meanRT = calc_trim_meanRT(trialdf, meanRT, stdRT)
     cvRT = calc_cvRT(meanRT, stdRT)
     summary_scores = pd.Series({'hits': hits, 'misses': misses, 'NR': NR,
-                        'meanRT': meanRT, 'trimmed_meanRT': trimmed_meanRT,
+                        'meanRT': meanRT, 'trim_meanRT': trim_meanRT,
                         'medianRT': medianRT, 'stdRT': stdRT, 'cvRT': cvRT})
     return summary_scores
 
@@ -180,13 +180,13 @@ def main(infile, outfile):
     axcpt_rates = get_hitmiss_rate(axcpt_summed)
     axcpt_rates = get_dprime(axcpt_rates)
     axcpt_clean = apply_excludes(axcpt_rates)    
-    axcpt_clean.to_csv(outfile, index=False)
+    axcpt_clean.to_csv(outfile, index=True)
     
     
 ##############################################################
 ############## Set paths and parameters ######################
 ##############################################################
-datapath = 'K:/AX-CPT/data' # Specify data path of AX-CPT data
+datapath = 'K:/data/AX-CPT' # Specify data path of AX-CPT data
 fname = 'AX-CPT_V2_merged.csv' # Name of input data file
 infile = os.path.join(datapath,fname) # Input file
 outname = 'AX-CPT_V2_processed.csv' # Name of file to save out
