@@ -125,7 +125,8 @@ def summarise_subjects(df):
     summarydf = summarydf.unstack()
     summarydf = summarydf.reorder_levels([1,0], axis=1)
     summarydf.columns = [''.join(col).strip().lower() 
-                            for col in summarydf.columns.values]  
+                            for col in summarydf.columns.values]
+    summarydf['ntrials'] = df.groupby('SubjectID').size()
     return summarydf
 
 def calc_hitmiss_rate(hits, misses):
@@ -169,7 +170,8 @@ def apply_excludes(df_rates):
     high no response rate. """
     exclude_idx = ((df_rates['bymisses'] + df_rates['bynr'] >2) | 
                     (df_rates['bxmisses'] + df_rates['bxnr'] > 14) |
-                    (df_rates['axmisses'] + df_rates['axnr'] > 43))
+                    (df_rates['axmisses'] + df_rates['axnr'] > 43) | 
+                    (df_rates['ntrials'] < 120))
     return df_rates.ix[~exclude_idx]
     
 def main(infile, outfile):
