@@ -154,7 +154,7 @@ def calc_dprime(axhits, axmisses, bxhits, bxmisses):
     to avoid dividing by 0. """
     axhitrate = (axhits + 0.5)/(axhits + axmisses + .01)
     bxfarate = (bxmisses + 0.5)/(bxhits + bxmisses + 1.)
-    dprime = axhitrate - bxfarate    
+    dprime = np.log((axhitrate * (1-bxfarate))/((1-axhitrate) * bxfarate))    
     return dprime   
 
 def get_dprime(df_rates):
