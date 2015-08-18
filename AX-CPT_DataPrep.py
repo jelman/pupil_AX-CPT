@@ -3,6 +3,11 @@
 Created on Thu Jul 09 12:42:28 2015
 
 @author: jaelman
+
+Script used to clean raw data. This checks for incorrectly coded data, 
+missing data, and duplicated data. Any issues should have been corrected, 
+so this script shouldn't need to be run again but is simply a log of how 
+discrpencies were identified.
 """
 
 import pandas as pd

@@ -3,6 +3,9 @@
 Created on Fri Jul 10 15:43:18 2015
 
 @author: jaelman
+
+Script to calculate metrics from AX-CPT and create a dataset. These 
+calculations should be identical as those used in VETSA 1.
 """
 
 import pandas as pd
