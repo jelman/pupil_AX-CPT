@@ -11,6 +11,8 @@ calculations should be identical as those used in VETSA 1.
 import pandas as pd
 import os
 import numpy as np
+from sas7bdat import SAS7BDAT
+
     
 def filter_trialproc(df):
     """Filter dataframe for TrialProc procedure. This gets rid of InitialPause 
@@ -179,6 +181,15 @@ def apply_excludes(df_rates):
                     (df_rates['axmisses'] > 43) | 
                     (df_rates['ntrials'] < 120))
     return df_rates.ix[~exclude_idx]
+
+def merge_qc(axcptdf, cog_file, qcVars):
+    """ Merge AX-CPT data with metadata from core dataset. This includes 
+    rater Z score, computer, version, complete and time administered."""     
+    with SAS7BDAT(cog_file) as f:
+        cogdf = f.to_data_frame()
+    axcpt_qc = pd.merge(axcptdf, cogdf[qcVars], 
+                        left_index=True, right_on='vetsaid', how='left')
+    return axcpt_qc
     
 def main(infile, outfile):
     axcpt_raw = pd.read_csv(infile, sep=',')
@@ -187,19 +198,24 @@ def main(infile, outfile):
     axcpt_summed = summarise_subjects(axcpt_filt)
     axcpt_rates = get_hitmiss_rate(axcpt_summed)
     axcpt_rates = get_dprime(axcpt_rates)
-    axcpt_clean = apply_excludes(axcpt_rates)    
-    axcpt_clean.to_csv(outfile, index=True)
+    axcpt_clean = apply_excludes(axcpt_rates)
+    axcpt_qc = merge_qc(axcpt_clean, cog_file, qcVars)    
+    axcpt_qc.to_csv(outfile, index=False)
     
     
-##############################################################
-############## Set paths and parameters ######################
-##############################################################
+#########################################################################
+############## Set paths and parameters #################################
+#########################################################################
 datapath = 'K:/data/AX-CPT' # Specify data path of AX-CPT data
 fname = 'AX-CPT_V2_merged.csv' # Name of input data file
 infile = os.path.join(datapath,fname) # Input file
+# Core cognitive dataset and variables corresponding to session info
+cog_file = 'K:/data/VETSA2_April2015/vetsa2merged_23apr2015.sas7bdat'
+qcVars = ['vetsaid','ZAXCPT_v2','CPTCOMPLETE_v2','CPTTIM_v2',
+          'CPTVERS_v2','CPTCOMPUTER_v2']
 outname = 'AX-CPT_V2_processed.csv' # Name of file to save out
 outfile = os.path.join(datapath, outname) # Output file
-##############################################################
+#########################################################################
 
 if __name__ == "__main__":
     main(infile, outfile)

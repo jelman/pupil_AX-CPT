@@ -16,8 +16,8 @@ import os
 ###############################
 datadir = 'K:/AX-CPT/data'
 pupil_fname = 'K:/data/Pupillometry/pupilDS_long.csv'
-cogv2_fname = 'K:/pupillometry/data/cognitive/vetsa2merged_23apr2015.sas7bdat'
-cogv1_fname = 'K:/pupillometry/data/cognitive/vetsa1merged_21aug2014.sas7bdat'
+cogv2_fname = 'K:/data/VETSA2_April2015/vetsa2merged_23apr2015.sas7bdat'
+cogv1_fname = 'K:/data/VETSA2_April2015/vetsa1merged_21aug2014.sas7bdat'
 cogVars_fname = 'K:/AX-CPT/data/AX-CPT_CogVariables.csv'
 axcpt_fname = 'K:/data/AX-CPT/AX-CPT_V2_processed.csv'
 mci_fname = 'K:/data/VETSA2_MCI.csv'
@@ -78,7 +78,6 @@ cogdf['lnquantile_V2'] = pd.qcut(cogdf['lntot_V2'],q=4,labels=[1,2,3,4])
 cogdf.ix[cogdf['HADSHINJ_v2']==9,'HADSHINJ_v2'] = None
 cogdf.ix[cogdf['NUMHINJ_v2']==99,'NUMHINJ_v2'] = None
 
-
 # Save out cognitive data
 cog_outfile = os.path.join(datadir, cog_outname)
 cogdf.to_csv(cog_outfile, index=False)
@@ -92,13 +91,16 @@ axcptdf = pd.read_csv(axcpt_fname)
 # Load MCI data
 MCIdf = pd.read_csv(mci_fname)
 
+#Filter out subjects who were given a Z score of 2 or were not completed
+axcptdf = axcptdf.loc[(axcptdf['ZAXCPT_v2']!=2) & 
+                      (axcptdf['CPTCOMPLETE_v2']==0)]
+
 ## Merge datasets
-pupil_axcpt = pd.merge(pupildf, axcptdf, left_on='vetsaid', 
-                   right_on='SubjectID', how='inner')                  
-pupil_axcpt = pd.merge(pupil_axcpt, cogdf, left_on='vetsaid', 
-                   right_on='vetsaid', how='inner')
-pupil_axcpt = pupil_axcpt.drop(['case_y','twin_y','zyg14_y',
-                                      'SubjectID'], axis=1)
+axcpt_cog = pd.merge(axcptdf, cogdf, left_on='vetsaid', 
+                   right_on='vetsaid', how='left')        
+pupil_axcpt = pd.merge(pupildf, axcpt_cog, left_on='vetsaid', 
+                   right_on='vetsaid', how='inner')                  
+pupil_axcpt = pupil_axcpt.drop(['case_y','twin_y','zyg14_y'],axis=1)
 pupil_axcpt = pd.merge(pupil_axcpt, MCIdf[['vetsaid','rMCI_cons_v2']], 
                          left_on='vetsaid',right_on='vetsaid', how='left') 
 pupil_axcpt = pupil_axcpt.rename(columns={'case_x':'case',
