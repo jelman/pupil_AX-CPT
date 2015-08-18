@@ -50,8 +50,8 @@ def calc_hits(trialdf):
     """ Calculate hits (correct responses) """
     return (trialdf['TargetSlide.ACC']==1).sum()  
     
-def calc_misses(trialdf):
-    """ Calculate misses (incorrect response) """
+def calc_errors(trialdf):
+    """ Calculate errors (incorrect response made) """
     misses = ((trialdf['TargetSlide.ACC']==0) & 
                 (trialdf['TargetSlide.RESP'].notnull())).sum()
     return misses
@@ -97,16 +97,19 @@ def calc_trial_scores(trialdf):
     summary score.
     """
     hits =  calc_hits(trialdf)
-    misses =  calc_misses(trialdf)
+    errors =  calc_errors(trialdf)
     NR = calc_NR(trialdf)
+    misses = errors + NR
     meanRT = calc_meanRT(trialdf)
     medianRT = calc_medianRT(trialdf)
     stdRT = calc_stdRT(trialdf)
     trim_meanRT = calc_trim_meanRT(trialdf, meanRT, stdRT)
     cvRT = calc_cvRT(meanRT, stdRT)
-    summary_scores = pd.Series({'hits': hits, 'misses': misses, 'NR': NR,
-                        'meanRT': meanRT, 'trim_meanRT': trim_meanRT,
-                        'medianRT': medianRT, 'stdRT': stdRT, 'cvRT': cvRT})
+    summary_scores = pd.Series({'hits': hits, 'misses': misses, 
+                                'errors': errors, 'NR': NR,
+                                'meanRT': meanRT, 'trim_meanRT': trim_meanRT,
+                                'medianRT': medianRT, 'stdRT': stdRT, 
+                                'cvRT': cvRT})
     return summary_scores
 
 def calc_subject_scores(subjectdf):
@@ -167,13 +170,13 @@ def get_dprime(df_rates):
     return df_rates
 
 def apply_excludes(df_rates):
-    """ Applies excludes based on error rates in AX, BX and BY trials. 
-    Adds counts errors as incorrect responses (misses) plus no responses
-    trials to account with subjects that had very low miss rate but very 
+    """ Applies excludes based on miss rates in AX, BX and BY trials. 
+    Miss rates include incorrect responses (errors) and no responses
+    trials to account with subjects that had very low error rate but very 
     high no response rate. """
-    exclude_idx = ((df_rates['bymisses'] + df_rates['bynr'] >2) | 
-                    (df_rates['bxmisses'] + df_rates['bxnr'] > 14) |
-                    (df_rates['axmisses'] + df_rates['axnr'] > 43) | 
+    exclude_idx = ((df_rates['bymisses'] > 2) | 
+                    (df_rates['bxmisses'] > 14) |
+                    (df_rates['axmisses'] > 43) | 
                     (df_rates['ntrials'] < 120))
     return df_rates.ix[~exclude_idx]
     
