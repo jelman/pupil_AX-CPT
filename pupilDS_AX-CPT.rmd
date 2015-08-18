@@ -1,0 +1,28 @@
+---
+title: "Pupillometry and AX-CPT"
+author: "Jeremy Elman"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+Load libraries
+```{r results='hide', message=FALSE, warning=FALSE}
+library(ggplot2)
+library(gridExtra)
+library(gtools)
+library(lme4)
+library(arm)
+library(lmerTest)
+library(dplyr)
+library(magrittr)
+library(sjPlot)
+library(sjmisc)
+library(multcomp)
+source("K:/code/summarySE.R")
+source("K:/code/normDataWithin.R")
+source("K:/code/summarySEwithin.R")
+```
