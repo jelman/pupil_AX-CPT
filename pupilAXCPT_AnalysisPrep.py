@@ -20,7 +20,8 @@ cogv2_fname = 'K:/pupillometry/data/cognitive/vetsa2merged_23apr2015.sas7bdat'
 cogv1_fname = 'K:/pupillometry/data/cognitive/vetsa1merged_21aug2014.sas7bdat'
 cogVars_fname = 'K:/AX-CPT/data/AX-CPT_CogVariables.csv'
 axcpt_fname = 'K:/data/AX-CPT/AX-CPT_V2_processed.csv'
-cog_outname = 'cogData.csv'
+mci_fname = 'K:/data/VETSA2_MCI.csv'
+cog_outname = 'AX-CPT_cogData.csv'
 final_outname = 'pupil_AX-CPT.csv'
 ###############################
 
@@ -88,6 +89,9 @@ pupildf = pd.read_csv(pupil_fname)
 ## Load AX-CPT data
 axcptdf = pd.read_csv(axcpt_fname)
 
+# Load MCI data
+MCIdf = pd.read_csv(mci_fname)
+
 ## Merge datasets
 pupil_axcpt = pd.merge(pupildf, axcptdf, left_on='vetsaid', 
                    right_on='SubjectID', how='inner')                  
@@ -95,6 +99,8 @@ pupil_axcpt = pd.merge(pupil_axcpt, cogdf, left_on='vetsaid',
                    right_on='vetsaid', how='inner')
 pupil_axcpt = pupil_axcpt.drop(['case_y','twin_y','zyg14_y',
                                       'SubjectID'], axis=1)
+pupil_axcpt = pd.merge(pupil_axcpt, MCIdf[['vetsaid','rMCI_cons_v2']], 
+                         left_on='vetsaid',right_on='vetsaid', how='left') 
 pupil_axcpt = pupil_axcpt.rename(columns={'case_x':'case',
                                                 'twin_x':'twin',
                                                 'zyg14_x':'zyg14'})
