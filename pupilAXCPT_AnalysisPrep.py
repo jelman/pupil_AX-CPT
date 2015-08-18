@@ -90,9 +90,9 @@ axcptdf = pd.read_csv(axcpt_fname)
 
 ## Merge datasets
 pupil_axcpt = pd.merge(pupildf, axcptdf, left_on='vetsaid', 
-                   right_on='SubjectID', how='left')                  
+                   right_on='SubjectID', how='inner')                  
 pupil_axcpt = pd.merge(pupil_axcpt, cogdf, left_on='vetsaid', 
-                   right_on='vetsaid', how='left')
+                   right_on='vetsaid', how='inner')
 pupil_axcpt = pupil_axcpt.drop(['case_y','twin_y','zyg14_y',
                                       'SubjectID'], axis=1)
 pupil_axcpt = pupil_axcpt.rename(columns={'case_x':'case',
