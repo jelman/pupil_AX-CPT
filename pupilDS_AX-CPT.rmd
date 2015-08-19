@@ -96,33 +96,38 @@ lme.PCA.resid = lmer(PCA ~ BaselineDiameter + (1 | case/vetsaid),
 pupilAXCPT$residPCA = resid(lme.PCA.resid)
 ```
 
+# Basic sample descriptives
+```{r, include=FALSE}
+#Create dataset with subject level variables to assess relationships with BOLD variance.
+
+subjDatAXCPT = pupilAXCPT %>% 
+            dplyr::select(-contains("PCA"),-contains("Load")) %>%
+            group_by(vetsaid) %>%
+            summarise_each(funs(first))
+```
+
 How many subjects?
 ```{r}
-n_distinct(pupilAXCPT$vetsaid)
+n_distinct(subjDatAXCPT$vetsaid)
 ```
 
 How many attrition replacements?
 ```{r}
-pupilAXCPT %>% 
-  group_by(vetsaid) %>% 
-  dplyr::summarise(AR = first(vetsa2)) %>%
-  group_by(AR) %>%
-  dplyr::summarise(n=n())
+dplyr::count(subjDatAXCPT, vetsa2)
 ```
 
 How many twin pairs vs unpaired twins? 
 ```{r}
-pupilAXCPT %>%
+subjDatAXCPT %>%
   group_by(case) %>%
   dplyr::summarise(n_twins = n_distinct(vetsaid)) %>%
-  group_by(n_twins) %>%
-  dplyr::summarise(n=n())
+  dplyr::count(n_twins)
 ```
 
 
 How many MZ and DZ pairs? (excludes unpaired subjects)
 ```{r}
-pupilAXCPT %>% 
+subjDatAXCPT %>% 
   group_by(case) %>%
   mutate(n_twins = n_distinct(vetsaid)) %>%
   filter(n_twins > 1) %>%
@@ -141,20 +146,12 @@ pupilAXCPT %>%
 
 How many of each MCI group?
 ```{r}
-pupilAXCPT %>% 
-  group_by(vetsaid) %>% 
-  dplyr::summarise(MCI = first(rMCI_cons_v2)) %>%
-  group_by(MCI) %>%
-  dplyr::summarise(n=n())
+dplyr::count(subjDatAXCPT, rMCI_cons_v2)
 ```
 
 How many of each MCI group binned by single or multi-doman MCI?
 ```{r}
-pupilAXCPT %>% 
-  group_by(vetsaid) %>% 
-  dplyr::summarise(MCI = first(rMCI_cons_bin)) %>%
-  group_by(MCI) %>%
-  dplyr::summarise(n=n())
+dplyr::count(subjDatAXCPT, rMCI_cons_bin)
 ```
 
 Plot pctPCA and residPCA data to check for ceiling effects on pupil dilation
@@ -174,9 +171,17 @@ residPcaPlot = ggplot(pupilAXCPT, aes(x=residPCA)) +
 grid.arrange(pctPcaPlot, residPcaPlot, ncol=2)
 ```
 
-
 ```{r, include=FALSE}
 pdf("K:/AX-CPT/results/PCAxLoad.pdf")
 grid.arrange(pctPcaPlot, residPcaPlot, ncol=2)
 dev.off()
 ```
+
+
+
+# AX-CPT performance 
+
+```{r}
+
+```
+
