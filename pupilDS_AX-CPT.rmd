@@ -26,3 +26,157 @@ source("K:/code/summarySE.R")
 source("K:/code/normDataWithin.R")
 source("K:/code/summarySEwithin.R")
 ```
+
+Load data.
+```{r}
+pupilAXCPT = read.csv("K:/AX-CPT/data/pupil_AX-CPT.csv", 
+                         stringsAsFactors = FALSE)
+pupilAXCPT = pupilAXCPT[!is.na(pupilAXCPT$PCA),]
+pupilAXCPT = subset(pupilAXCPT, vetsa2=='vetsa2')
+str(pupilAXCPT)
+```
+
+Recode two-level factors to 0/1. Center continuous data.
+*TRANSFORM*
+```{r}
+# Create factors
+pupilAXCPT$facLoad = factor(pupilAXCPT$Load)
+contr.backward.diff = matrix(c(-2/3, 1/3, 1/3,-1/3,-1/3,2/3), ncol = 2)
+contrasts(pupilAXCPT$facLoad) = contr.backward.diff
+pupilAXCPT$MZ = ifelse(pupilAXCPT$zyg14==1, 1, 0)
+pupilAXCPT$site_v2rev = ifelse(pupilAXCPT$site_v2rev==1, 1, 0)
+pupilAXCPT$Device = factor(pupilAXCPT$LR_Device)
+pupilAXCPT$acamedbin = ifelse(pupilAXCPT$acamedtot==0, 0, 1)
+
+#Bin MCI data into 0 = No impairment, 1 = Single domain MCI, 2 = Multi-domain MCI.
+pupilAXCPT$rMCI_cons_bin = ifelse(pupilAXCPT$rMCI_cons_v2==0, 0, 
+                                        ifelse(pupilAXCPT$rMCI_cons_v2==1 | 
+                                               pupilAXCPT$rMCI_cons_v2==2, 1, 2))
+
+# Center continuous variables to interpret intercept at mean value (rather than 0).
+# Subject specific variables centered at subject level, trial specific variables centered at trial level.
+contTrialVars = c("PCA","pctPCA","adjPCA")
+contSubjVars = c("age_v2","afqtpcttran_v2","DSFMAX_v2")
+
+# Center trial specific variables
+for (x in contTrialVars) {
+  newcol = paste0('c.',x)
+  pupilAXCPT[[newcol]] = as.numeric(scale(pupilAXCPT[[x]], center=TRUE, scale=FALSE))
+}
+
+# Center subject specific variables
+subjDF = pupilAXCPT[c("vetsaid",contSubjVars)]
+subjDF %<>% group_by(vetsaid) %>% dplyr::summarise_each(funs(mean))
+nums <- sapply(subjDF, is.numeric)
+c.subjDF = as.data.frame(apply(subjDF[,nums],2, function(y) y - mean(y, na.rm=TRUE)))
+names(c.subjDF) = paste0("c.",names(c.subjDF))
+c.subjDF$vetsaid = subjDF$vetsaid
+pupilAXCPT = left_join(pupilAXCPT, c.subjDF, by="vetsaid")
+
+# Create quantile groups of log RT data
+pupilAXCPT %<>%
+  group_by(vetsaid) %>%
+  dplyr::summarise(log_meanRT = mean(log_meanRT),
+                   log_medianRT = mean(log_medianRT),
+                   log_stdRT = mean(log_stdRT),
+                   resid_log_stdRT = mean(resid_log_stdRT),
+                   log_cvRT = mean(log_cvRT)) %>%
+  mutate(q.log_meanRT = quantcut(log_meanRT, q=4, labels=seq(1,4)),
+         q.log_medianRT = quantcut(log_medianRT, q=4, labels=seq(1,4)),
+         q.log_stdRT = quantcut(log_stdRT, q=4, labels=seq(1,4)),
+         q.resid_log_stdRT = quantcut(resid_log_stdRT, q=4, labels=seq(1,4)),
+         q.log_cvRT = quantcut(log_cvRT, q=4, labels=seq(1,4))) %>%
+  dplyr::select(vetsaid,q.log_meanRT,q.log_medianRT,q.log_stdRT,
+                q.resid_log_stdRT,q.log_cvRT) %>%
+  inner_join(pupilAXCPT, by="vetsaid")
+
+# Create residPCA by regressing BaselineDiameter from PCA and taking the residuals.
+lme.PCA.resid = lmer(PCA ~ BaselineDiameter + (1 | case/vetsaid),
+                     data=pupilAXCPT)
+pupilAXCPT$residPCA = resid(lme.PCA.resid)
+```
+
+How many subjects?
+```{r}
+n_distinct(pupilAXCPT$vetsaid)
+```
+
+How many attrition replacements?
+```{r}
+pupilAXCPT %>% 
+  group_by(vetsaid) %>% 
+  dplyr::summarise(AR = first(vetsa2)) %>%
+  group_by(AR) %>%
+  dplyr::summarise(n=n())
+```
+
+How many twin pairs vs unpaired twins? 
+```{r}
+pupilAXCPT %>%
+  group_by(case) %>%
+  dplyr::summarise(n_twins = n_distinct(vetsaid)) %>%
+  group_by(n_twins) %>%
+  dplyr::summarise(n=n())
+```
+
+
+How many MZ and DZ pairs? (excludes unpaired subjects)
+```{r}
+pupilAXCPT %>% 
+  group_by(case) %>%
+  mutate(n_twins = n_distinct(vetsaid)) %>%
+  filter(n_twins > 1) %>%
+  dplyr::summarise(zyg = mean(zyg14)) %>%
+  group_by(zyg) %>%
+  dplyr::count(zyg)
+```
+
+How many levels of load did subjects complete? Shows number of subjects who completed 1, 2, or 3 levels (corresponding to digit spans of 3, 6, and 9).
+```{r}
+pupilAXCPT %>%
+  group_by(vetsaid) %>%
+  dplyr::summarise(load = n()) %>%
+  dplyr::count(load)
+```
+
+How many of each MCI group?
+```{r}
+pupilAXCPT %>% 
+  group_by(vetsaid) %>% 
+  dplyr::summarise(MCI = first(rMCI_cons_v2)) %>%
+  group_by(MCI) %>%
+  dplyr::summarise(n=n())
+```
+
+How many of each MCI group binned by single or multi-doman MCI?
+```{r}
+pupilAXCPT %>% 
+  group_by(vetsaid) %>% 
+  dplyr::summarise(MCI = first(rMCI_cons_bin)) %>%
+  group_by(MCI) %>%
+  dplyr::summarise(n=n())
+```
+
+Plot pctPCA and residPCA data to check for ceiling effects on pupil dilation
+```{r}
+pctPcaPlot = ggplot(pupilAXCPT, aes(x=pctPCA)) + 
+  geom_histogram(fill="steel blue",color="gray50",alpha=.7) + 
+  facet_wrap(~ Load, nrow=3) + 
+  ggtitle("Histogram of pctPCA by Load") + 
+  xlab("% PCA") + theme_bw() 
+
+residPcaPlot = ggplot(pupilAXCPT, aes(x=residPCA)) + 
+  geom_histogram(fill="steel blue",color="gray50",alpha=.7) + 
+  facet_wrap(~ Load, nrow=3) + 
+  ggtitle("Histogram of residPCA by Load") + 
+  xlab("PCA (adjusted for baseline)") + theme_bw() 
+
+grid.arrange(pctPcaPlot, residPcaPlot, ncol=2)
+```
+
+
+```{r, include=FALSE}
+pdf("K:/AX-CPT/results/PCAxLoad.pdf")
+grid.arrange(pctPcaPlot, residPcaPlot, ncol=2)
+dev.off()
+```
