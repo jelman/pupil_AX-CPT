@@ -313,21 +313,94 @@ dev.off()
 
 BY mean reaction time
 ```{r}
-bymeanrt.p1 = ggplot(subjDatAXCPT, aes(x=by)) + 
+log.bymeanrt.p1 = ggplot(subjDatAXCPT, aes(x=log.bymeanrt)) + 
   geom_histogram(fill="steel blue",color="black") + 
-  theme(plot.title=element_text(face="bold")) + theme_bw(14)
+  theme(plot.title=element_text(face="bold")) + theme_bw()
 
-ayfa.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=ayfarate)) + 
+log.bymeanrt.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=log.bymeanrt)) + 
               geom_boxplot(fill="firebrick",alpha=.75) +
               geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
               theme(plot.title=element_text(face="bold")) +
-              theme_bw(14)
-grid.arrange(ayfa.p1, ayfa.p2, ncol=2, top="AY FA Rate by MCI status")
-summary(lm(ayfarate ~ rMCI_cons_bin, data=subjDatAXCPT))
+              theme_bw()
+
+grid.arrange(log.bymeanrt.p1, log.bymeanrt.p2, ncol=2, top="BY log mean RT by MCI status")
+summary(lm(log.bymeanrt ~ rMCI_cons_bin, data=subjDatAXCPT))
 ```
 
-```{r,include=FALSE}
-pdf("K:/AX-CPT/results/ayfarate_X_MCI.pdf")
-grid.arrange(ayfa.p1, ayfa.p2, ncol=2, top="AY FA Rate by MCI status")
+BY median reaction time
+```{r}
+log.bymedianrt.p1 = ggplot(subjDatAXCPT, aes(x=log.bymedianrt)) + 
+  geom_histogram(fill="steel blue",color="black") + 
+  theme(plot.title=element_text(face="bold")) + theme_bw()
+
+log.bymedianrt.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=log.bymedianrt)) + 
+              geom_boxplot(fill="firebrick",alpha=.75) +
+              geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
+              theme(plot.title=element_text(face="bold")) +
+              theme_bw()
+
+grid.arrange(log.bymedianrt.p1, log.bymedianrt.p2, ncol=2, 
+             top="BY log median RT by MCI status")
+summary(lm(log.bymedianrt ~ rMCI_cons_bin, data=subjDatAXCPT))
+```
+
+
+BY standard deviation reaction time
+```{r}
+log.bystdrt.p1 = ggplot(subjDatAXCPT, aes(x=log.bystdrt)) + 
+  geom_histogram(fill="steel blue",color="black") + 
+  theme(plot.title=element_text(face="bold")) + theme_bw()
+
+log.bystdrt.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=log.bystdrt)) + 
+              geom_boxplot(fill="firebrick",alpha=.75) +
+              geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
+              theme(plot.title=element_text(face="bold")) +
+              theme_bw()
+
+grid.arrange(log.bystdrt.p1, log.bystdrt.p2, ncol=2, 
+             top="BY log standard deviation RT by MCI status")
+summary(lm(log.bystdrt ~ rMCI_cons_bin, data=subjDatAXCPT))
+```
+
+BY CV reaction time
+```{r}
+log.bycvrt.p1 = ggplot(subjDatAXCPT, aes(x=log.bycvrt)) + 
+  geom_histogram(fill="steel blue",color="black") + 
+  theme(plot.title=element_text(face="bold")) + theme_bw()
+
+log.bycvrt.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=log.bycvrt)) + 
+              geom_boxplot(fill="firebrick",alpha=.75) +
+              geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
+              theme(plot.title=element_text(face="bold")) +
+              theme_bw()
+
+grid.arrange(log.bycvrt.p1, log.bycvrt.p2, ncol=2, top="BY log CV RT by MCI status")
+summary(lm(log.bycvrt ~ rMCI_cons_bin, data=subjDatAXCPT))
+```
+
+BY residual standard deviation reaction time
+```{r}
+resid.bystdrt.p1 = ggplot(subjDatAXCPT, aes(x=resid.bystdrt)) + 
+  geom_histogram(fill="steel blue",color="black") + 
+  theme(plot.title=element_text(face="bold")) + theme_bw()
+
+resid.bystdrt.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=resid.bystdrt)) + 
+              geom_boxplot(fill="firebrick",alpha=.75) +
+              geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
+              theme(plot.title=element_text(face="bold")) +
+              theme_bw()
+
+grid.arrange(resid.bystdrt.p1, resid.bystdrt.p2, ncol=2, 
+             top="BY residual standard deviation RT by MCI status")
+summary(lm(resid.bystdrt ~ rMCI_cons_bin, data=subjDatAXCPT))
+```
+
+
+```{r, include=FALSE}
+# Save out figure of mean, std, and residual std RT
+pdf("K:/AX-CPT/results/BY_RTxMCI.pdf", height=8, width=6)
+grid.arrange(log.bymeanrt.p1, log.bymeanrt.p2, log.bystdrt.p1, log.bystdrt.p2,
+             resid.bystdrt.p1, resid.bystdrt.p2, ncol=2)
 dev.off()
 ```
+
