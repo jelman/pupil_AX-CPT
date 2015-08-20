@@ -15,6 +15,7 @@ import os
 
 ###############################
 datadir = 'K:/AX-CPT/data'
+outdir = 'K:/AX-CPT/data'
 pupil_fname = 'K:/data/Pupillometry/pupilDS_long.csv'
 cogv2_fname = 'K:/data/VETSA2_April2015/vetsa2merged_23apr2015.sas7bdat'
 cogv1_fname = 'K:/data/VETSA2_April2015/vetsa1merged_21aug2014.sas7bdat'
@@ -108,5 +109,5 @@ pupil_axcpt = pupil_axcpt.rename(columns={'case_x':'case',
                                                 'zyg14_x':'zyg14'})
                                                 
 # Save out files
-outfile = os.path.join(datadir,final_outname)
+outfile = os.path.join(outdir,final_outname)
 pupil_axcpt.to_csv(outfile, index=False)                                                
