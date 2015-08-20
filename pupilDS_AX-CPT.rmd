@@ -25,13 +25,14 @@ library(multcomp)
 source("K:/code/summarySE.R")
 source("K:/code/normDataWithin.R")
 source("K:/code/summarySEwithin.R")
+sjp.setTheme(base=theme_bw())
 ```
 
 Load data.
 ```{r}
 pupilAXCPT = read.csv("K:/AX-CPT/data/pupil_AX-CPT.csv", 
                          stringsAsFactors = FALSE)
-pupilAXCPT = pupilAXCPT[!is.na(pupilAXCPT$PCA),]
+pupilAXCPT = pupilAXCPT[!is.na(pupilAXCPT$PCA) & !is.na(pupilAXCPT$rMCI_cons_v2),]
 pupilAXCPT = subset(pupilAXCPT, vetsa2=='vetsa2')
 str(pupilAXCPT)
 ```
@@ -41,6 +42,7 @@ Recode two-level factors to 0/1. Center continuous data.
 ```{r}
 # Create factors
 pupilAXCPT$facLoad = factor(pupilAXCPT$Load)
+pupilAXCPT$rMCI_cons_v2 = factor(pupilAXCPT$rMCI_cons_v2)
 contr.backward.diff = matrix(c(-2/3, 1/3, 1/3,-1/3,-1/3,2/3), ncol = 2)
 contrasts(pupilAXCPT$facLoad) = contr.backward.diff
 pupilAXCPT$MZ = ifelse(pupilAXCPT$zyg14==1, 1, 0)
@@ -52,11 +54,12 @@ pupilAXCPT$acamedbin = ifelse(pupilAXCPT$acamedtot==0, 0, 1)
 pupilAXCPT$rMCI_cons_bin = ifelse(pupilAXCPT$rMCI_cons_v2==0, 0, 
                                         ifelse(pupilAXCPT$rMCI_cons_v2==1 | 
                                                pupilAXCPT$rMCI_cons_v2==2, 1, 2))
+pupilAXCPT$rMCI_cons_bin = factor(pupilAXCPT$rMCI_cons_bin)
 
 # Center continuous variables to interpret intercept at mean value (rather than 0).
 # Subject specific variables centered at subject level, trial specific variables centered at trial level.
 contTrialVars = c("PCA","pctPCA","adjPCA")
-contSubjVars = c("age_v2","afqtpcttran_v2","DSFMAX_v2")
+contSubjVars = c("age_v2","afqtpcttran_v2","DSFMAX_v2","dprime")
 
 # Center trial specific variables
 for (x in contTrialVars) {
@@ -73,26 +76,41 @@ names(c.subjDF) = paste0("c.",names(c.subjDF))
 c.subjDF$vetsaid = subjDF$vetsaid
 pupilAXCPT = left_join(pupilAXCPT, c.subjDF, by="vetsaid")
 
+# Log transform BY RT measures
+pupilAXCPT$log.bymeanrt = log(pupilAXCPT$bymeanrt)
+pupilAXCPT$log.bymedianrt = log(pupilAXCPT$bymedianrt)
+pupilAXCPT$log.bystdrt = log(pupilAXCPT$bystdrt)
+pupilAXCPT$log.bycvrt = log(pupilAXCPT$bycvrt)
+
+# Get BY RT standard deviation with mean RT regressed out
+pupilAXCPT %<>%
+  dplyr::select(vetsaid, bymeanrt, bystdrt) %>%
+  group_by(vetsaid) %>%
+  dplyr::summarise(bymeanrt = first(bymeanrt),
+                   bystdrt = first(bystdrt)) %>%
+  do(data.frame(vetsaid = .[["vetsaid"]],
+                resid.bystdrt = resid(lm(bystdrt ~ bymeanrt, data=.)))) %>%
+  inner_join(pupilAXCPT, by="vetsaid")
+
 # Create quantile groups of log RT data
 pupilAXCPT %<>%
   group_by(vetsaid) %>%
-  dplyr::summarise(log_meanRT = mean(log_meanRT),
-                   log_medianRT = mean(log_medianRT),
-                   log_stdRT = mean(log_stdRT),
-                   resid_log_stdRT = mean(resid_log_stdRT),
-                   log_cvRT = mean(log_cvRT)) %>%
-  mutate(q.log_meanRT = quantcut(log_meanRT, q=4, labels=seq(1,4)),
-         q.log_medianRT = quantcut(log_medianRT, q=4, labels=seq(1,4)),
-         q.log_stdRT = quantcut(log_stdRT, q=4, labels=seq(1,4)),
-         q.resid_log_stdRT = quantcut(resid_log_stdRT, q=4, labels=seq(1,4)),
-         q.log_cvRT = quantcut(log_cvRT, q=4, labels=seq(1,4))) %>%
-  dplyr::select(vetsaid,q.log_meanRT,q.log_medianRT,q.log_stdRT,
-                q.resid_log_stdRT,q.log_cvRT) %>%
+  dplyr::summarise(log.bymeanrt = first(log.bymeanrt),
+                   log.bymedianrt = first(log.bymedianrt),
+                   log.bystdrt = first(log.bystdrt),
+                   log.bycvrt = first(log.bycvrt),
+                   resid.bystdrt = first(resid.bystdrt)) %>%
+  mutate(q.log.bymeanrt = quantcut(log.bymeanrt, q=4, labels=seq(1,4)),
+         q.log.bymedianrt = quantcut(log.bymedianrt, q=4, labels=seq(1,4)),
+         q.log.bystdrt = quantcut(log.bystdrt, q=4, labels=seq(1,4)),
+         q.log.bycvrt = quantcut(log.bycvrt, q=4, labels=seq(1,4)),
+         q.resid.bystdrt = quantcut(resid.bystdrt, q=4, labels=seq(1,4))) %>%
+  dplyr::select(vetsaid,q.log.bymeanrt,q.log.bymedianrt,q.log.bystdrt,
+                q.log.bycvrt,q.resid.bystdrt) %>%
   inner_join(pupilAXCPT, by="vetsaid")
 
 # Create residPCA by regressing BaselineDiameter from PCA and taking the residuals.
-lme.PCA.resid = lmer(PCA ~ BaselineDiameter + (1 | case/vetsaid),
-                     data=pupilAXCPT)
+lme.PCA.resid = lmer(PCA ~ BaselineDiameter + (1 | case/vetsaid),data=pupilAXCPT)
 pupilAXCPT$residPCA = resid(lme.PCA.resid)
 ```
 
@@ -154,16 +172,38 @@ How many of each MCI group binned by single or multi-doman MCI?
 dplyr::count(subjDatAXCPT, rMCI_cons_bin)
 ```
 
+Look at frequencies of MCI measures
+```{r}
+mci.p1 = sjp.frq(subjDatAXCPT$rMCI_cons_v2, 
+          title="MCI groups",
+          axisLabels.x=c("Normal","Single Domain\nNon-amnestic","Single Domain\nAmnestic"),
+          axisLimits.y = c(0,850))
+
+mci.p2 = sjp.frq(subjDatAXCPT$rMCI_cons_bin, 
+          title="Binned MCI groups",
+          axisLabels.x=c("Normal","Single Domain"),
+          axisLimits.y = c(0,850))
+
+grid.arrange(mci.p1$plot,mci.p2$plot)
+```
+
+```{r, include=FALSE}
+pdf("K:/AX-CPT/results/MCI_groups.pdf", width=8, height=6)
+grid.arrange(mci.p1$plot,mci.p2$plot)
+dev.off()
+```
+
+
 Plot pctPCA and residPCA data to check for ceiling effects on pupil dilation
 ```{r}
 pctPcaPlot = ggplot(pupilAXCPT, aes(x=pctPCA)) + 
-  geom_histogram(fill="steel blue",color="gray50",alpha=.7) + 
+  geom_histogram(fill="steel blue",color="black") + 
   facet_wrap(~ Load, nrow=3) + 
   ggtitle("Histogram of pctPCA by Load") + 
   xlab("% PCA") + theme_bw() 
 
 residPcaPlot = ggplot(pupilAXCPT, aes(x=residPCA)) + 
-  geom_histogram(fill="steel blue",color="gray50",alpha=.7) + 
+  geom_histogram(fill="steel blue",color="black") + 
   facet_wrap(~ Load, nrow=3) + 
   ggtitle("Histogram of residPCA by Load") + 
   xlab("PCA (adjusted for baseline)") + theme_bw() 
@@ -181,7 +221,113 @@ dev.off()
 
 # AX-CPT performance 
 
-```{r}
+## Error Rates
 
+d' by MCI group
+```{r}
+dprime.p1 = ggplot(subjDatAXCPT, aes(x=dprime)) + 
+  geom_histogram(fill="steel blue",color="black") + 
+  theme(plot.title=element_text(face="bold")) + theme_bw(14)
+
+dprime.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=dprime)) + 
+              geom_boxplot(fill="firebrick",alpha=.75) +
+              geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
+              theme(plot.title=element_text(face="bold")) +
+              theme_bw(14)
+grid.arrange(dprime.p1,dprime.p2, ncol=2, top="d' by MCI status")
+
+summary(lm(dprime ~ rMCI_cons_bin, data=subjDatAXCPT))
 ```
 
+```{r,include=FALSE}
+pdf("K:/AX-CPT/results/dprime_X_MCI.pdf")
+grid.arrange(dprime.p1,dprime.p2, ncol=2, top="d' by MCI status")
+dev.off()
+```
+
+AX False alarm rates
+```{r}
+axfa.p1 = ggplot(subjDatAXCPT, aes(x=axfarate)) + 
+  geom_histogram(fill="steel blue",color="black") + 
+  theme(plot.title=element_text(face="bold")) + theme_bw(14)
+
+axfa.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=axfarate)) + 
+              geom_boxplot(fill="firebrick",alpha=.75) +
+              geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
+              theme(plot.title=element_text(face="bold")) +
+              theme_bw(14)
+grid.arrange(axfa.p1, axfa.p2, ncol=2, top="AX FA Rate by MCI status")
+summary(lm(axfarate ~ rMCI_cons_bin, data=subjDatAXCPT))
+```
+
+```{r,include=FALSE}
+pdf("K:/AX-CPT/results/axfarate_X_MCI.pdf")
+grid.arrange(axfa.p1, axfa.p2, ncol=2, top="AX FA Rate by MCI status")
+dev.off()
+```
+
+
+BX False alarm rates
+```{r}
+bxfa.p1 = ggplot(subjDatAXCPT, aes(x=bxfarate)) + 
+  geom_histogram(fill="steel blue",color="black") + 
+  theme(plot.title=element_text(face="bold")) + theme_bw(14)
+
+bxfa.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=bxfarate)) + 
+              geom_boxplot(fill="firebrick",alpha=.75) +
+              geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
+              theme(plot.title=element_text(face="bold")) +
+              theme_bw(14)
+grid.arrange(bxfa.p1, bxfa.p2, ncol=2, top="BX FA Rate by MCI status")
+summary(lm(bxfarate ~ rMCI_cons_bin, data=subjDatAXCPT))
+```
+
+```{r,include=FALSE}
+pdf("K:/AX-CPT/results/bxfarate_X_MCI.pdf")
+grid.arrange(bxfa.p1, bxfa.p2, ncol=2, top="BX FA Rate by MCI status")
+dev.off()
+```
+
+AY False alarm rates
+```{r}
+ayfa.p1 = ggplot(subjDatAXCPT, aes(x=ayfarate)) + 
+  geom_histogram(fill="steel blue",color="black") + 
+  theme(plot.title=element_text(face="bold")) + theme_bw(14)
+
+ayfa.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=ayfarate)) + 
+              geom_boxplot(fill="firebrick",alpha=.75) +
+              geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
+              theme(plot.title=element_text(face="bold")) +
+              theme_bw(14)
+grid.arrange(ayfa.p1, ayfa.p2, ncol=2, top="AY FA Rate by MCI status")
+summary(lm(ayfarate ~ rMCI_cons_bin, data=subjDatAXCPT))
+```
+
+```{r,include=FALSE}
+pdf("K:/AX-CPT/results/ayfarate_X_MCI.pdf")
+grid.arrange(ayfa.p1, ayfa.p2, ncol=2, top="AY FA Rate by MCI status")
+dev.off()
+```
+
+## Reaction Times
+
+BY mean reaction time
+```{r}
+bymeanrt.p1 = ggplot(subjDatAXCPT, aes(x=by)) + 
+  geom_histogram(fill="steel blue",color="black") + 
+  theme(plot.title=element_text(face="bold")) + theme_bw(14)
+
+ayfa.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=ayfarate)) + 
+              geom_boxplot(fill="firebrick",alpha=.75) +
+              geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
+              theme(plot.title=element_text(face="bold")) +
+              theme_bw(14)
+grid.arrange(ayfa.p1, ayfa.p2, ncol=2, top="AY FA Rate by MCI status")
+summary(lm(ayfarate ~ rMCI_cons_bin, data=subjDatAXCPT))
+```
+
+```{r,include=FALSE}
+pdf("K:/AX-CPT/results/ayfarate_X_MCI.pdf")
+grid.arrange(ayfa.p1, ayfa.p2, ncol=2, top="AY FA Rate by MCI status")
+dev.off()
+```
