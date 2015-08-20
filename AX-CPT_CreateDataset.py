@@ -137,38 +137,47 @@ def summarise_subjects(df):
     summarydf['ntrials'] = df.groupby('SubjectID').size()
     return summarydf
 
-def calc_hitmiss_rate(hits, misses):
+def calc_hitmiss_rate(hits, fa, misses):
     """ Given the number of hits and misses for a particular trial type, 
-    calculates the hit rate and miss rate. """
-    hitrate = hits / (hits + misses)
-    missrate = 1. - hitrate    
-    return hitrate, missrate
+    calculates the hit rate, false alarm rate, and miss rate. False alarm rate 
+    considers number of incorrect responses. Miss rate combines incorrect 
+    responses and no responses.
+    Note, these are corrected hit and FA rates as defined in Corwin (1994).
+    hit rate = (# hits + .5)/(targets + 1)
+    false alarm rate = (# FA + .5)/(# distractors + 1)
+    """
+    hitrate = (hits + .5) / (hits + misses + 1.)
+    farate = (fa + .5)/(hits + misses + 1.)
+    missrate = 1. - hitrate  
+    return hitrate, farate, missrate
     
 def get_hitmiss_rate(summed_df, trialtypes=['AX','BX','AY','BY']):
-    """ Loops over trial types and inserts hit and miss rate for each into 
-    the passed dataframe. """
+    """ Loops over trial types and inserts hit, false alarm, and miss rate 
+    for each into the passed dataframe."""
     for trial in trialtypes:
         trial = trial.lower()
         hits = summed_df[''.join([trial,'hits'])]
+        fa = summed_df[''.join([trial,'errors'])]
         misses = summed_df[''.join([trial,'misses'])]
         hitratevarname = ''.join([trial,'hitrate'])
         missratevarname = ''.join([trial,'missrate'])
-        summed_df[hitratevarname], summed_df[missratevarname] = calc_hitmiss_rate(hits,misses)
+        faratevarname = ''.join([trial,'farate'])
+        hitrate, farate, missrate = calc_hitmiss_rate(hits,fa,misses)
+        summed_df[hitratevarname] = hitrate
+        summed_df[missratevarname] = missrate
+        summed_df[faratevarname] = farate
     return summed_df
     
-def calc_dprime(axhits, axmisses, bxhits, bxmisses):
+def calc_dprime(axhitrate, bxfarate):
     """ Calculates d' score from AX and BX trials. AX trials are used for 
-    the hit rate and BX for the false alarm rate. These rates are adjusted 
-    to avoid dividing by 0. """
-    axhitrate = (axhits + 0.5)/(axhits + axmisses + .01)
-    bxfarate = (bxmisses + 0.5)/(bxhits + bxmisses + 1.)
-    dprime = np.log((axhitrate * (1-bxfarate))/((1-axhitrate) * bxfarate))    
-    return dprime   
+    the hit rate and BX for the false alarm rate. The calculation is according 
+    to Corwin et al. (1994). The rates should be adjusted to avoid values of 
+    0 or 1."""
+    return np.log((axhitrate * (1.-bxfarate))/((1.-axhitrate) * bxfarate))
 
 def get_dprime(df_rates):
-    """ Inserts d' score into a passed dataframe. """
-    df_rates['dprime'] = calc_dprime(df_rates['axhits'],df_rates['axmisses'],
-                                    df_rates['bxhits'],df_rates['bxmisses'])  
+    """ Inserts d' scores into a passed dataframe. """
+    df_rates['dprime'] = calc_dprime(df_rates['axhitrate'],df_rates['bxfarate']) 
     return df_rates
 
 def apply_excludes(df_rates):
@@ -200,7 +209,7 @@ def main(infile, outfile):
     axcpt_rates = get_dprime(axcpt_rates)
     axcpt_clean = apply_excludes(axcpt_rates)
     axcpt_qc = merge_qc(axcpt_clean, cog_file, qcVars)    
-    axcpt_qc.to_csv(outfile, index=False)
+    axcpt_qc.set_index('vetsaid').to_csv(outfile, index=True)
     
     
 #########################################################################
