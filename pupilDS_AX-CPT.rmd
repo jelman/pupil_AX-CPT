@@ -95,17 +95,22 @@ pupilAXCPT %<>%
 # Create quantile groups of log RT data
 pupilAXCPT %<>%
   group_by(vetsaid) %>%
-  dplyr::summarise(log.bymeanrt = first(log.bymeanrt),
+  dplyr::summarise(c.DSFMAX_v2 = first(c.DSFMAX_v2),
+                   dprime = first(dprime),
+                   log.bymeanrt = first(log.bymeanrt),
                    log.bymedianrt = first(log.bymedianrt),
                    log.bystdrt = first(log.bystdrt),
                    log.bycvrt = first(log.bycvrt),
                    resid.bystdrt = first(resid.bystdrt)) %>%
-  mutate(q.log.bymeanrt = quantcut(log.bymeanrt, q=4, labels=seq(1,4)),
+  mutate(q.DSFMAX_v2 = quantcut(c.DSFMAX_v2, q=4, labels=seq(1,4)),
+         q.dprime = quantcut(dprime, q=4, labels=seq(1,4)),
+         q.log.bymeanrt = quantcut(log.bymeanrt, q=4, labels=seq(1,4)),
          q.log.bymedianrt = quantcut(log.bymedianrt, q=4, labels=seq(1,4)),
          q.log.bystdrt = quantcut(log.bystdrt, q=4, labels=seq(1,4)),
          q.log.bycvrt = quantcut(log.bycvrt, q=4, labels=seq(1,4)),
          q.resid.bystdrt = quantcut(resid.bystdrt, q=4, labels=seq(1,4))) %>%
-  dplyr::select(vetsaid,q.log.bymeanrt,q.log.bymedianrt,q.log.bystdrt,
+  dplyr::select(vetsaid,q.DSFMAX_v2,q.dprime,
+                q.log.bymeanrt,q.log.bymedianrt,q.log.bystdrt,
                 q.log.bycvrt,q.resid.bystdrt) %>%
   inner_join(pupilAXCPT, by="vetsaid")
 
@@ -404,3 +409,196 @@ grid.arrange(log.bymeanrt.p1, log.bymeanrt.p2, log.bystdrt.p1, log.bystdrt.p2,
 dev.off()
 ```
 
+# Mixed Effects Models
+
+## AX-CPT Performance
+Plot pupil dilation by d' quantile
+```{r, echo=FALSE}
+summaryResidPCA.dprime = summarySEwithin(subset(pupilAXCPT, rMCI_cons_bin==0), 
+                measurevar="residPCA", 
+                idvar="vetsaid", 
+                withinvars="Load",
+                betweenvars="q.dprime",
+                na.rm=TRUE)
+  
+p.dprime = summaryResidPCA.dprime %>%
+          filter(q.dprime==1 | q.dprime==4) %>%
+          ggplot(., aes(x=Load,y=residPCA,
+                        color=q.dprime,
+                        group=q.dprime)) +
+            geom_line() +
+            geom_errorbar(width=.1, aes(ymin=residPCA-ci,ymax=residPCA+ci)) +
+            ggtitle("d'") + theme_bw(16) +
+            ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
+            scale_color_discrete(name="d-prime\nquantile", labels=c("Lower","Upper"))
+print(p.dprime)
+ggsave("K:/AX-CPT/results/pupil_dprime.pdf",p.dprime)
+```
+
+Run basic model testing interaction of Load with d'
+```{r}
+contrasts.facLoad.dprime = rbind(
+    'Load3:dprime vs Load6:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0),
+    'Load6:dprime vs Load9:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1),
+    'Load3:dprime vs Load9:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
+)
+lme.facLoad.dprime = lmer(residPCA ~ facLoad*dprime + apoe4 + c.age_v2 + 
+                            site_v2rev + Device + acamedbin + c.DSFMAX_v2 +
+                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
+                          data=subset(pupilAXCPT, rMCI_cons_bin==0))
+summary(lme.facLoad.dprime)
+summary(glht(lme.facLoad.dprime, contrasts.facLoad.dprime), 
+              test = adjusted("none"))
+```
+
+
+## Reaction Time Measures
+Plot pupil dilation by mean RT quantile
+```{r, echo=FALSE}
+summaryResidPCA.log.bymeanrt = summarySEwithin(subset(pupilAXCPT, rMCI_cons_bin==0), 
+                measurevar="residPCA", 
+                idvar="vetsaid", 
+                withinvars="Load",
+                betweenvars="q.log.bymeanrt",
+                na.rm=TRUE)
+  
+p.log.bymeanrt = summaryResidPCA.log.bymeanrt %>%
+          filter(q.log.bymeanrt==1 | q.log.bymeanrt==4) %>%
+          ggplot(., aes(x=Load,y=residPCA,
+                        color=q.log.bymeanrt,
+                        group=q.log.bymeanrt)) +
+            geom_line() +
+            geom_errorbar(width=.1, aes(ymin=residPCA-ci,ymax=residPCA+ci)) +
+            ggtitle("Log Mean RT") + theme_bw(16) +
+            ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
+            scale_color_discrete(name="Mean RT\nquantile", labels=c("Lower","Upper"))
+print(p.log.bymeanrt)
+```
+
+
+Run basic model testing interaction of Load with log mean RT
+```{r}
+contrasts.facLoad.log.bymeanrt = rbind(
+    'Load3:log.bymeanrt vs Load6:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0),
+    'Load6:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0),
+    'Load3:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0)
+)
+lme.facLoad.log.bymeanrt = lmer(residPCA ~ facLoad*log.bymeanrt + apoe4 + c.age_v2 + 
+                            site_v2rev + Device + acamedbin + facLoad*c.DSFMAX_v2 +
+                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
+                          data=subset(pupilAXCPT, rMCI_cons_bin==0))
+summary(lme.facLoad.log.bymeanrt)
+summary(glht(lme.facLoad.log.bymeanrt, contrasts.facLoad.log.bymeanrt), 
+              test = adjusted("none"))
+```
+
+Plot pupil dilation by log standard deviation of RT quantile
+```{r, echo=FALSE}
+summaryResidPCA.log.bystdrt = summarySEwithin(subset(pupilAXCPT, rMCI_cons_bin==0), 
+                measurevar="residPCA", 
+                idvar="vetsaid", 
+                withinvars="Load",
+                betweenvars="q.log.bystdrt",
+                na.rm=TRUE)
+  
+p.log.bystdrt = summaryResidPCA.log.bystdrt %>%
+          filter(q.log.bystdrt==1 | q.log.bystdrt==4) %>%
+          ggplot(., aes(x=Load,y=residPCA,
+                        color=q.log.bystdrt,
+                        group=q.log.bystdrt)) +
+            geom_line() +
+            geom_errorbar(width=.1, aes(ymin=residPCA-ci,ymax=residPCA+ci)) +
+            ggtitle("Log Standard Deviation RT") + theme_bw(16) +
+            ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
+            scale_color_discrete(name="SD RT\nquantile", labels=c("Lower","Upper"))
+print(p.log.bystdrt)
+```
+
+Run basic model testing interaction of Load with log std RT
+```{r}
+contrasts.facLoad.log.bystdrt = rbind(
+    'Load3:log.bystdrt vs Load6:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0),
+    'Load6:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1),
+    'Load3:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
+)
+lme.facLoad.log.bystdrt = lmer(residPCA ~ facLoad*log.bystdrt + apoe4 + c.age_v2 + 
+                            site_v2rev + Device + acamedbin + c.DSFMAX_v2 +
+                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
+                          data=subset(pupilAXCPT, rMCI_cons_bin==0))
+summary(lme.facLoad.log.bystdrt)
+summary(glht(lme.facLoad.log.bystdrt, contrasts.facLoad.log.bystdrt), 
+              test = adjusted("none"))
+```
+
+Plot pupil dilation by residual standard deviation of RT quantile
+```{r, echo=FALSE}
+summaryResidPCA.resid.bystdrt = summarySEwithin(subset(pupilAXCPT, rMCI_cons_bin==0), 
+                measurevar="residPCA", 
+                idvar="vetsaid", 
+                withinvars="Load",
+                betweenvars="q.resid.bystdrt",
+                na.rm=TRUE)
+  
+p.resid.bystdrt = summaryResidPCA.resid.bystdrt %>%
+          filter(q.resid.bystdrt==1 | q.resid.bystdrt==4) %>%
+          ggplot(., aes(x=Load,y=residPCA,
+                        color=q.resid.bystdrt,
+                        group=q.resid.bystdrt)) +
+            geom_line() +
+            geom_errorbar(width=.1, aes(ymin=residPCA-ci,ymax=residPCA+ci)) +
+            ggtitle("Residual Standard Deviation RT") + theme_bw(16) +
+            ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
+            scale_color_discrete(name="SD RT\nquantile", labels=c("Lower","Upper"))
+print(p.resid.bystdrt)
+```
+
+Run basic model testing interaction of Load with residual std RT
+```{r}
+contrasts.facLoad.resid.bystdrt = rbind(
+    'Load3:resid.bystdrt vs Load6:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0),
+    'Load6:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0),
+    'Load3:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0)
+)
+lme.facLoad.resid.bystdrt = lmer(residPCA ~ facLoad*resid.bystdrt + apoe4 + c.age_v2 + 
+                            site_v2rev + Device + acamedbin + facLoad*c.DSFMAX_v2 +
+                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
+                          data=subset(pupilAXCPT, rMCI_cons_bin==0))
+summary(lme.facLoad.resid.bystdrt)
+summary(glht(lme.facLoad.resid.bystdrt, contrasts.facLoad.resid.bystdrt), 
+              test = adjusted("none"))
+```
+
+```{r, include=FALSE}
+# Save plots of pupil response by reaction time measures
+legend = get_legend(p.log.bymeanrt)
+p.log.bymeanrt = p.log.bymeanrt + theme(legend.position="none")
+p.log.bystdrt = p.log.bystdrt + theme(legend.position="none")
+p.resid.bystdrt = p.resid.bystdrt + theme(legend.position="none")
+pdf("K:/AX-CPT/results/pupil_rtmeasures.pdf",width=12,height=10)
+grid.arrange(p.log.bymeanrt,p.log.bystdrt,p.resid.bystdrt,legend)
+dev.off()
+```
+
+----------------
+
+Plot pupil dilation by digit span max quantile
+```{r, echo=FALSE}
+summaryResidPCA.DSFMAX_v2 = summarySEwithin(subset(pupilAXCPT, rMCI_cons_bin==0), 
+                measurevar="residPCA", 
+                idvar="vetsaid", 
+                withinvars="Load",
+                betweenvars="q.DSFMAX_v2",
+                na.rm=TRUE)
+  
+p.DSFMAX_v2 = summaryResidPCA.DSFMAX_v2 %>%
+          filter(q.DSFMAX_v2==1 | q.DSFMAX_v2==4) %>%
+          ggplot(., aes(x=Load,y=residPCA,
+                        color=q.DSFMAX_v2,
+                        group=q.DSFMAX_v2)) +
+            geom_line() +
+            geom_errorbar(width=.1, aes(ymin=residPCA-ci,ymax=residPCA+ci)) +
+            ggtitle("Max digit span") + theme_bw(16) +
+            ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
+            scale_color_discrete(name="Max digit span\nquantile", labels=c("Lower","Upper"))
+print(p.DSFMAX_v2)
+```
