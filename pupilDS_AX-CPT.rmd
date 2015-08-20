@@ -409,7 +409,7 @@ grid.arrange(log.bymeanrt.p1, log.bymeanrt.p2, log.bystdrt.p1, log.bystdrt.p2,
 dev.off()
 ```
 
-# Mixed Effects Models
+# Mixed Effects Models: Cognitively normal only
 
 ## AX-CPT Performance
 Plot pupil dilation by d' quantile
@@ -453,6 +453,8 @@ summary(glht(lme.facLoad.dprime, contrasts.facLoad.dprime),
 
 
 ## Reaction Time Measures
+
+**Mean RT**
 Plot pupil dilation by mean RT quantile
 ```{r, echo=FALSE}
 summaryResidPCA.log.bymeanrt = summarySEwithin(subset(pupilAXCPT, rMCI_cons_bin==0), 
@@ -492,6 +494,7 @@ summary(glht(lme.facLoad.log.bymeanrt, contrasts.facLoad.log.bymeanrt),
               test = adjusted("none"))
 ```
 
+**Standard Deviation**
 Plot pupil dilation by log standard deviation of RT quantile
 ```{r, echo=FALSE}
 summaryResidPCA.log.bystdrt = summarySEwithin(subset(pupilAXCPT, rMCI_cons_bin==0), 
@@ -530,6 +533,7 @@ summary(glht(lme.facLoad.log.bystdrt, contrasts.facLoad.log.bystdrt),
               test = adjusted("none"))
 ```
 
+**Residual Standard Deviation**
 Plot pupil dilation by residual standard deviation of RT quantile
 ```{r, echo=FALSE}
 summaryResidPCA.resid.bystdrt = summarySEwithin(subset(pupilAXCPT, rMCI_cons_bin==0), 
@@ -580,10 +584,69 @@ dev.off()
 ```
 
 ----------------
+# Mixed Effects Models: All MCI groups
+
+Run basic model testing interaction of Load with log mean RT
+```{r}
+contrasts.facLoad.log.bymeanrt.MCI = rbind(
+    'Load3:log.bymeanrt vs Load6:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0),
+    'Load6:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0,0,0),
+    'Load3:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0)
+)
+
+lme.facLoad.log.bymeanrt.MCI = lmer(residPCA ~ facLoad*log.bymeanrt + apoe4 +
+                                   c.age_v2 + site_v2rev + Device + acamedbin +
+                                   facLoad*c.DSFMAX_v2 + facLoad*rMCI_cons_bin +
+                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
+                          data=pupilAXCPT)
+summary(lme.facLoad.log.bymeanrt.MCI)
+summary(glht(lme.facLoad.log.bymeanrt.MCI, 
+             contrasts.facLoad.log.bymeanrt.MCI),
+             test = adjusted("none"))
+```
+
+Run basic model testing interaction of Load with log std RT
+```{r}
+contrasts.facLoad.log.bystdrt.MCI = rbind(
+    'Load3:log.bystdrt vs Load6:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0),
+    'Load6:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0,0,0),
+    'Load3:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0)
+)
+
+lme.facLoad.log.bystdrt.MCI = lmer(residPCA ~ facLoad*log.bystdrt + apoe4 +
+                                   c.age_v2 + site_v2rev + Device + acamedbin +
+                                   facLoad*c.DSFMAX_v2 + facLoad*rMCI_cons_bin +
+                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
+                          data=pupilAXCPT)
+summary(lme.facLoad.log.bystdrt.MCI)
+summary(glht(lme.facLoad.log.bystdrt.MCI, 
+             contrasts.facLoad.log.bystdrt.MCI),
+             test = adjusted("none"))
+```
+
+Run basic model testing interaction of Load with residual std RT
+```{r}
+contrasts.facLoad.resid.bystdrt.MCI = rbind(
+    'Load3:resid.bystdrt vs Load6:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0),
+    'Load6:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0,0,0),
+    'Load3:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0)
+)
+
+lme.facLoad.resid.bystdrt.MCI = lmer(residPCA ~ facLoad*resid.bystdrt + apoe4 +
+                                   c.age_v2 + site_v2rev + Device + acamedbin +
+                                   facLoad*c.DSFMAX_v2 + facLoad*rMCI_cons_bin +
+                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
+                          data=pupilAXCPT)
+summary(lme.facLoad.resid.bystdrt.MCI)
+summary(glht(lme.facLoad.resid.bystdrt.MCI, 
+             contrasts.facLoad.resid.bystdrt.MCI),
+             test = adjusted("none"))
+```
+----------------
 
 Plot pupil dilation by digit span max quantile
 ```{r, echo=FALSE}
-summaryResidPCA.DSFMAX_v2 = summarySEwithin(subset(pupilAXCPT, rMCI_cons_bin==0), 
+summaryResidPCA.DSFMAX_v2 = summarySEwithin(pupilAXCPT, 
                 measurevar="residPCA", 
                 idvar="vetsaid", 
                 withinvars="Load",
@@ -601,4 +664,31 @@ p.DSFMAX_v2 = summaryResidPCA.DSFMAX_v2 %>%
             ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
             scale_color_discrete(name="Max digit span\nquantile", labels=c("Lower","Upper"))
 print(p.DSFMAX_v2)
+ggsave("K:/AX-CPT/results/pupil_MaxDigitSpan.pdf", p.DSFMAX_v2)
+```
+
+Plot pupil dilation by digit span max quantile
+```{r, echo=FALSE}
+summaryResidPCA.MCI = summarySEwithin(pupilAXCPT, 
+                measurevar="residPCA", 
+                idvar="vetsaid", 
+                withinvars="Load",
+                betweenvars="rMCI_cons_bin",
+                na.rm=TRUE)
+  
+p.MCI = summaryResidPCA.MCI %>%
+          ggplot(., aes(x=Load,y=residPCA,
+                        color=rMCI_cons_bin,
+                        group=rMCI_cons_bin)) +
+            geom_line() +
+            geom_errorbar(width=.1, aes(ymin=residPCA-ci,ymax=residPCA+ci)) +
+            ggtitle("MCI Status") + theme_bw(16) +
+            ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
+            scale_color_discrete(name="MCI Group", 
+                                 labels=c("No MCI",
+                                          "Single Domain MCI",
+                                          "Multi-Domain MCI"))
+print(p.MCI)
+ggsave("K:/AX-CPT/results/pupil_MCI.pdf", p.MCI)
+
 ```
