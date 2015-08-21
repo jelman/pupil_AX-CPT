@@ -423,11 +423,11 @@ ggsave("K:/AX-CPT/results/pupil_dprime.pdf",p.dprime)
 Run basic model testing interaction of Load with d'
 ```{r}
 contrasts.facLoad.dprime = rbind(
-    'Load3:dprime vs Load6:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0),
-    'Load6:dprime vs Load9:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0),
-    'Load3:dprime vs Load9:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0)
+    'Load3:c.dprime vs Load6:c.dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0),
+    'Load6:c.dprime vs Load9:c.dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0),
+    'Load3:c.dprime vs Load9:c.dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0)
 )
-lme.facLoad.dprime = lmer(residPCA ~ facLoad*(dprime + c.DSFMAX_v2) + 
+lme.facLoad.dprime = lmer(residPCA ~ facLoad*(c.dprime + c.DSFMAX_v2) + 
                             apoe4 + c.age_v2 + site_v2rev + Device + 
                             acamedbin + c.afqtpcttran_v2 + 
                             (1 | case/vetsaid), 
@@ -437,6 +437,16 @@ summary(glht(lme.facLoad.dprime, contrasts.facLoad.dprime),
               test = adjusted("none"))
 ```
 
+Test for differences based on d' within each level of Load
+```{r}
+lme.dprime.loads <- lapply(loads, function(x) {
+    lmer(residPCA ~ c.dprime + apoe4 + c.age_v2 + site_v2rev + 
+                    Device + acamedbin + c.DSFMAX_v2 + c.afqtpcttran_v2 + 
+                    (1 | case), 
+         data=filter(pupilAXCPT,rMCI_cons_bin==0 & Load==x))
+})
+lapply(lme.dprime.loads, summary)
+```
 
 ## Reaction Time Measures
 
@@ -481,6 +491,17 @@ summary(glht(lme.facLoad.log.bymeanrt, contrasts.facLoad.log.bymeanrt),
               test = adjusted("none"))
 ```
 
+Test for differences based on mean RT within each level of Load
+```{r}
+lme.log.bymeanrt.loads <- lapply(loads, function(x) {
+    lmer(residPCA ~ log.bymeanrt + apoe4 + c.age_v2 + site_v2rev + 
+                    Device + acamedbin + c.DSFMAX_v2 + c.afqtpcttran_v2 + 
+                    (1 | case), 
+         data=filter(pupilAXCPT,rMCI_cons_bin==0 & Load==x))
+})
+lapply(lme.log.bymeanrt.loads, summary)
+```
+
 **Standard Deviation**
 Plot pupil dilation by log standard deviation of RT quantile
 ```{r, echo=FALSE}
@@ -519,6 +540,17 @@ lme.facLoad.log.bystdrt = lmer(residPCA ~ facLoad*(log.bystdrt + c.DSFMAX_v2) +
 summary(lme.facLoad.log.bystdrt)
 summary(glht(lme.facLoad.log.bystdrt, contrasts.facLoad.log.bystdrt), 
               test = adjusted("none"))
+```
+
+Test for differences based on SD RT within each level of Load
+```{r}
+lme.log.bystdrt.loads <- lapply(loads, function(x) {
+    lmer(residPCA ~ log.bystdrt + apoe4 + c.age_v2 + site_v2rev + 
+                    Device + acamedbin + c.DSFMAX_v2 + c.afqtpcttran_v2 + 
+                    (1 | case), 
+         data=filter(pupilAXCPT,rMCI_cons_bin==0 & Load==x))
+})
+lapply(lme.log.bystdrt.loads, summary)
 ```
 
 **Residual Standard Deviation**
@@ -561,6 +593,17 @@ summary(glht(lme.facLoad.resid.bystdrt, contrasts.facLoad.resid.bystdrt),
               test = adjusted("none"))
 ```
 
+Test for differences based on residual SD RT within each level of Load
+```{r}
+lme.resid.bystdrt.loads <- lapply(loads, function(x) {
+    lmer(residPCA ~ resid.bystdrt + apoe4 + c.age_v2 + site_v2rev + 
+                    Device + acamedbin + c.DSFMAX_v2 + c.afqtpcttran_v2 + 
+                    (1 | case), 
+         data=filter(pupilAXCPT,rMCI_cons_bin==0 & Load==x))
+})
+lapply(lme.resid.bystdrt.loads, summary)
+```
+
 ```{r, include=FALSE}
 # Save plots of pupil response by reaction time measures
 legend = get_legend(p.log.bymeanrt)
@@ -594,6 +637,18 @@ summary(glht(lme.facLoad.log.bymeanrt.MCI,
              test = adjusted("none"))
 ```
 
+Test for differences based on mean RT within each level of Load
+```{r}
+lme.log.bymeanrt.loads.MCI <- lapply(loads, function(x) {
+    lmer(residPCA ~ log.bymeanrt + apoe4 + c.age_v2 + site_v2rev + 
+                    Device + acamedbin + c.DSFMAX_v2 + 
+                    rMCI_cons_bin + c.afqtpcttran_v2 + 
+                    (1 | case), 
+         data=filter(pupilAXCPT, Load==x))
+})
+lapply(lme.log.bymeanrt.loads.MCI, summary)
+```
+
 Run basic model testing interaction of Load with log std RT
 ```{r}
 contrasts.facLoad.log.bystdrt.MCI = rbind(
@@ -611,6 +666,18 @@ summary(lme.facLoad.log.bystdrt.MCI)
 summary(glht(lme.facLoad.log.bystdrt.MCI, 
              contrasts.facLoad.log.bystdrt.MCI),
              test = adjusted("none"))
+```
+
+Test for differences based on SD RT within each level of Load
+```{r}
+lme.log.bystdrt.loads.MCI <- lapply(loads, function(x) {
+    lmer(residPCA ~ log.bystdrt + apoe4 + c.age_v2 + site_v2rev + 
+                    Device + acamedbin + c.DSFMAX_v2 + 
+                    rMCI_cons_bin + c.afqtpcttran_v2 + 
+                    (1 | case), 
+         data=filter(pupilAXCPT, Load==x))
+})
+lapply(lme.log.bystdrt.loads.MCI, summary)
 ```
 
 Run basic model testing interaction of Load with residual std RT
@@ -632,6 +699,17 @@ summary(glht(lme.facLoad.resid.bystdrt.MCI,
              test = adjusted("none"))
 ```
 
+Test for differences based on residual SD RT within each level of Load
+```{r}
+lme.resid.bystdrt.loads.MCI <- lapply(loads, function(x) {
+    lmer(residPCA ~ resid.bystdrt + apoe4 + c.age_v2 + site_v2rev + 
+                    Device + acamedbin + c.DSFMAX_v2 + 
+                    rMCI_cons_bin + c.afqtpcttran_v2 + 
+                    (1 | case), 
+         data=filter(pupilAXCPT, Load==x))
+})
+lapply(lme.resid.bystdrt.loads.MCI, summary)
+```
 ----------------
 # Covariate Plot 
 
