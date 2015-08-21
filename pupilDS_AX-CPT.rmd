@@ -227,7 +227,7 @@ grid.arrange(pctPcaPlot, residPcaPlot, ncol=2)
 dev.off()
 ```
 
-
+--------------------------------------------------
 
 # AX-CPT performance 
 
@@ -578,16 +578,16 @@ dev.off()
 Run basic model testing interaction of Load with log mean RT
 ```{r}
 contrasts.facLoad.log.bymeanrt.MCI = rbind(
-    'Load3:log.bymeanrt vs Load6:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0),
-    'Load6:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0),
-    'Load3:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0)
+    'Load3:log.bymeanrt vs Load6:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0),
+    'Load6:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0),
+    'Load3:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0,0,0)
 )
 
 lme.facLoad.log.bymeanrt.MCI = lmer(residPCA ~ facLoad*log.bymeanrt + apoe4 +
                                    c.age_v2 + site_v2rev + Device + acamedbin +
                                    facLoad*c.DSFMAX_v2 + facLoad*rMCI_cons_bin +
-                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
-                          data=pupilAXCPT)
+                                   c.afqtpcttran_v2 + (1 | case/vetsaid), 
+                                data=pupilAXCPT)
 summary(lme.facLoad.log.bymeanrt.MCI)
 summary(glht(lme.facLoad.log.bymeanrt.MCI, 
              contrasts.facLoad.log.bymeanrt.MCI),
@@ -597,16 +597,16 @@ summary(glht(lme.facLoad.log.bymeanrt.MCI,
 Run basic model testing interaction of Load with log std RT
 ```{r}
 contrasts.facLoad.log.bystdrt.MCI = rbind(
-    'Load3:log.bystdrt vs Load6:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0),
-    'Load6:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0),
-    'Load3:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0)
+    'Load3:log.bystdrt vs Load6:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0),
+    'Load6:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0),
+    'Load3:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0,0,0)
 )
 
 lme.facLoad.log.bystdrt.MCI = lmer(residPCA ~ facLoad*log.bystdrt + apoe4 +
                                    c.age_v2 + site_v2rev + Device + acamedbin +
                                    facLoad*c.DSFMAX_v2 + facLoad*rMCI_cons_bin +
-                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
-                          data=pupilAXCPT)
+                                   c.afqtpcttran_v2 + (1 | case/vetsaid), 
+                                data=pupilAXCPT)
 summary(lme.facLoad.log.bystdrt.MCI)
 summary(glht(lme.facLoad.log.bystdrt.MCI, 
              contrasts.facLoad.log.bystdrt.MCI),
@@ -616,9 +616,9 @@ summary(glht(lme.facLoad.log.bystdrt.MCI,
 Run basic model testing interaction of Load with residual std RT
 ```{r}
 contrasts.facLoad.resid.bystdrt.MCI = rbind(
-    'Load3:resid.bystdrt vs Load6:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0),
-    'Load6:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0),
-    'Load3:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0)
+    'Load3:resid.bystdrt vs Load6:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0),
+    'Load6:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0),
+    'Load3:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0,0,0)
 )
 
 lme.facLoad.resid.bystdrt.MCI = lmer(residPCA ~ facLoad*resid.bystdrt + apoe4 +
@@ -633,6 +633,7 @@ summary(glht(lme.facLoad.resid.bystdrt.MCI,
 ```
 
 ----------------
+# Covariate Plot 
 
 Plot pupil dilation by digit span max quantile
 ```{r, echo=FALSE}
@@ -681,4 +682,14 @@ p.MCI = summaryResidPCA.MCI %>%
 print(p.MCI)
 ggsave("K:/AX-CPT/results/pupil_MCI.pdf", p.MCI)
 
+```
+
+----------------------------
+```{r, include=FALSE}
+#Save out analysis dataset
+write.csv(pupilAXCPT, "K:/AX-CPT/data/pupilDS_AX-CPT_AnalysisDataset.csv")
+```
+
+```{r}
+print(sessionInfo(), locale = FALSE)
 ```
