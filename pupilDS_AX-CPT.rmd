@@ -96,25 +96,15 @@ pupilAXCPT %<>%
   inner_join(pupilAXCPT, by="vetsaid")
 
 # Create quantile groups of log RT data
+qVars = c("c.DSFMAX_v2","dprime","log.bymeanrt","log.bymedianrt",
+          "log.bystdrt","log.bycvrt","resid.bystdrt")
+new.qVars = qVars
+names(new.qVars) = paste0("q.",qVars)
 pupilAXCPT %<>%
   group_by(vetsaid) %>%
-  dplyr::summarise(c.DSFMAX_v2 = first(c.DSFMAX_v2),
-                   dprime = first(dprime),
-                   log.bymeanrt = first(log.bymeanrt),
-                   log.bymedianrt = first(log.bymedianrt),
-                   log.bystdrt = first(log.bystdrt),
-                   log.bycvrt = first(log.bycvrt),
-                   resid.bystdrt = first(resid.bystdrt)) %>%
-  mutate(q.DSFMAX_v2 = quantcut(c.DSFMAX_v2, q=4, labels=seq(1,4)),
-         q.dprime = quantcut(dprime, q=4, labels=seq(1,4)),
-         q.log.bymeanrt = quantcut(log.bymeanrt, q=4, labels=seq(1,4)),
-         q.log.bymedianrt = quantcut(log.bymedianrt, q=4, labels=seq(1,4)),
-         q.log.bystdrt = quantcut(log.bystdrt, q=4, labels=seq(1,4)),
-         q.log.bycvrt = quantcut(log.bycvrt, q=4, labels=seq(1,4)),
-         q.resid.bystdrt = quantcut(resid.bystdrt, q=4, labels=seq(1,4))) %>%
-  dplyr::select(vetsaid,q.DSFMAX_v2,q.dprime,
-                q.log.bymeanrt,q.log.bymedianrt,q.log.bystdrt,
-                q.log.bycvrt,q.resid.bystdrt) %>%
+  dplyr::summarise_each_(funs(mean),qVars) %>%
+  mutate_each_(funs(quantcut(.,q=4, labels=seq(1,4))),qVars) %>%
+  dplyr::select_("vetsaid"="vetsaid",.dots=new.qVars) %>%
   inner_join(pupilAXCPT, by="vetsaid")
 
 # Create residPCA by regressing BaselineDiameter from PCA and taking the residuals.
@@ -415,7 +405,8 @@ p.dprime = summaryResidPCA.dprime %>%
             geom_errorbar(width=.1, aes(ymin=residPCA-ci,ymax=residPCA+ci)) +
             ggtitle("d'") + theme_bw(16) +
             ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
-            scale_color_discrete(name="d-prime\nquantile", labels=c("Lower","Upper"))
+            scale_color_discrete(name="d-prime\nquantile",
+                                 labels=c("Lower","Upper"))
 print(p.dprime)
 ggsave("K:/AX-CPT/results/pupil_dprime.pdf",p.dprime)
 ```
@@ -443,7 +434,7 @@ lme.dprime.loads <- lapply(loads, function(x) {
     lmer(residPCA ~ c.dprime + apoe4 + c.age_v2 + site_v2rev + 
                     Device + acamedbin + c.DSFMAX_v2 + c.afqtpcttran_v2 + 
                     (1 | case), 
-         data=filter(pupilAXCPT,rMCI_cons_bin==0 & Load==x))
+                    data=filter(pupilAXCPT,rMCI_cons_bin==0 & Load==x))
 })
 lapply(lme.dprime.loads, summary)
 ```
@@ -469,7 +460,8 @@ p.log.bymeanrt = summaryResidPCA.log.bymeanrt %>%
             geom_errorbar(width=.1, aes(ymin=residPCA-ci,ymax=residPCA+ci)) +
             ggtitle("Log Mean RT") + theme_bw(16) +
             ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
-            scale_color_discrete(name="Mean RT\nquantile", labels=c("Lower","Upper"))
+            scale_color_discrete(name="Mean RT\nquantile",
+                                 labels=c("Lower","Upper"))
 print(p.log.bymeanrt)
 ```
 
@@ -497,7 +489,7 @@ lme.log.bymeanrt.loads <- lapply(loads, function(x) {
     lmer(residPCA ~ log.bymeanrt + apoe4 + c.age_v2 + site_v2rev + 
                     Device + acamedbin + c.DSFMAX_v2 + c.afqtpcttran_v2 + 
                     (1 | case), 
-         data=filter(pupilAXCPT,rMCI_cons_bin==0 & Load==x))
+                    data=filter(pupilAXCPT,rMCI_cons_bin==0 & Load==x))
 })
 lapply(lme.log.bymeanrt.loads, summary)
 ```
@@ -505,7 +497,7 @@ lapply(lme.log.bymeanrt.loads, summary)
 **Standard Deviation**
 Plot pupil dilation by log standard deviation of RT quantile
 ```{r, echo=FALSE}
-summaryResidPCA.log.bystdrt = summarySEwithin(subset(pupilAXCPT, rMCI_cons_bin==0), 
+summaryResidPCA.log.bystdrt = summarySEwithin(subset(pupilAXCPT, rMCI_cons_bin==0),
                 measurevar="residPCA", 
                 idvar="vetsaid", 
                 withinvars="Load",
@@ -521,7 +513,8 @@ p.log.bystdrt = summaryResidPCA.log.bystdrt %>%
             geom_errorbar(width=.1, aes(ymin=residPCA-ci,ymax=residPCA+ci)) +
             ggtitle("Log Standard Deviation RT") + theme_bw(16) +
             ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
-            scale_color_discrete(name="SD RT\nquantile", labels=c("Lower","Upper"))
+            scale_color_discrete(name="SD RT\nquantile", 
+                                 labels=c("Lower","Upper"))
 print(p.log.bystdrt)
 ```
 
@@ -548,7 +541,7 @@ lme.log.bystdrt.loads <- lapply(loads, function(x) {
     lmer(residPCA ~ log.bystdrt + apoe4 + c.age_v2 + site_v2rev + 
                     Device + acamedbin + c.DSFMAX_v2 + c.afqtpcttran_v2 + 
                     (1 | case), 
-         data=filter(pupilAXCPT,rMCI_cons_bin==0 & Load==x))
+                    data=filter(pupilAXCPT,rMCI_cons_bin==0 & Load==x))
 })
 lapply(lme.log.bystdrt.loads, summary)
 ```
@@ -572,7 +565,8 @@ p.resid.bystdrt = summaryResidPCA.resid.bystdrt %>%
             geom_errorbar(width=.1, aes(ymin=residPCA-ci,ymax=residPCA+ci)) +
             ggtitle("Residual Standard Deviation RT") + theme_bw(16) +
             ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
-            scale_color_discrete(name="SD RT\nquantile", labels=c("Lower","Upper"))
+            scale_color_discrete(name="SD RT\nquantile", 
+                                 labels=c("Lower","Upper"))
 print(p.resid.bystdrt)
 ```
 
@@ -599,7 +593,7 @@ lme.resid.bystdrt.loads <- lapply(loads, function(x) {
     lmer(residPCA ~ resid.bystdrt + apoe4 + c.age_v2 + site_v2rev + 
                     Device + acamedbin + c.DSFMAX_v2 + c.afqtpcttran_v2 + 
                     (1 | case), 
-         data=filter(pupilAXCPT,rMCI_cons_bin==0 & Load==x))
+                    data=filter(pupilAXCPT,rMCI_cons_bin==0 & Load==x))
 })
 lapply(lme.resid.bystdrt.loads, summary)
 ```
@@ -675,7 +669,7 @@ lme.log.bystdrt.loads.MCI <- lapply(loads, function(x) {
                     Device + acamedbin + c.DSFMAX_v2 + 
                     rMCI_cons_bin + c.afqtpcttran_v2 + 
                     (1 | case), 
-         data=filter(pupilAXCPT, Load==x))
+                  data=filter(pupilAXCPT, Load==x))
 })
 lapply(lme.log.bystdrt.loads.MCI, summary)
 ```
@@ -691,8 +685,8 @@ contrasts.facLoad.resid.bystdrt.MCI = rbind(
 lme.facLoad.resid.bystdrt.MCI = lmer(residPCA ~ facLoad*resid.bystdrt + apoe4 +
                                    c.age_v2 + site_v2rev + Device + acamedbin +
                                    facLoad*c.DSFMAX_v2 + facLoad*rMCI_cons_bin +
-                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
-                          data=pupilAXCPT)
+                                   c.afqtpcttran_v2 + (1 | case/vetsaid), 
+                                  data=pupilAXCPT)
 summary(lme.facLoad.resid.bystdrt.MCI)
 summary(glht(lme.facLoad.resid.bystdrt.MCI, 
              contrasts.facLoad.resid.bystdrt.MCI),
@@ -706,7 +700,7 @@ lme.resid.bystdrt.loads.MCI <- lapply(loads, function(x) {
                     Device + acamedbin + c.DSFMAX_v2 + 
                     rMCI_cons_bin + c.afqtpcttran_v2 + 
                     (1 | case), 
-         data=filter(pupilAXCPT, Load==x))
+                    data=filter(pupilAXCPT, Load==x))
 })
 lapply(lme.resid.bystdrt.loads.MCI, summary)
 ```
@@ -719,19 +713,20 @@ summaryResidPCA.DSFMAX_v2 = summarySEwithin(pupilAXCPT,
                 measurevar="residPCA", 
                 idvar="vetsaid", 
                 withinvars="Load",
-                betweenvars="q.DSFMAX_v2",
+                betweenvars="q.c.DSFMAX_v2",
                 na.rm=TRUE)
   
 p.DSFMAX_v2 = summaryResidPCA.DSFMAX_v2 %>%
-          filter(q.DSFMAX_v2==1 | q.DSFMAX_v2==4) %>%
+          filter(q.c.DSFMAX_v2==1 | q.c.DSFMAX_v2==4) %>%
           ggplot(., aes(x=Load,y=residPCA,
-                        color=q.DSFMAX_v2,
-                        group=q.DSFMAX_v2)) +
+                        color=q.c.DSFMAX_v2,
+                        group=q.c.DSFMAX_v2)) +
             geom_line() +
             geom_errorbar(width=.1, aes(ymin=residPCA-ci,ymax=residPCA+ci)) +
             ggtitle("Max digit span") + theme_bw(16) +
             ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
-            scale_color_discrete(name="Max digit span\nquantile", labels=c("Lower","Upper"))
+            scale_color_discrete(name="Max digit span\nquantile",
+                                 labels=c("Lower","Upper"))
 print(p.DSFMAX_v2)
 ggsave("K:/AX-CPT/results/pupil_MaxDigitSpan.pdf", p.DSFMAX_v2)
 ```
