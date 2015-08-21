@@ -40,8 +40,10 @@ str(pupilAXCPT)
 Recode two-level factors to 0/1. Center continuous data.
 *TRANSFORM*
 ```{r}
-# Create factors
-pupilAXCPT$facLoad = factor(pupilAXCPT$Load)
+## Create factors
+# Set 6 as reference level to contrast adjacent levels. Flip sign of 
+# coefficient contrast 3 vs 6 to interpret slope.
+pupilAXCPT$facLoad = factor(pupilAXCPT$Load, levels=c("6","3","9"))
 pupilAXCPT$rMCI_cons_v2 = factor(pupilAXCPT$rMCI_cons_v2)
 contr.backward.diff = matrix(c(-2/3, 1/3, 1/3,-1/3,-1/3,2/3), ncol = 2)
 contrasts(pupilAXCPT$facLoad) = contr.backward.diff
@@ -239,15 +241,8 @@ dprime.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=dprime)) +
               geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
               theme(plot.title=element_text(face="bold")) +
               theme_bw(14)
-grid.arrange(dprime.p1,dprime.p2, ncol=2, top="d' by MCI status")
-
+g.dprime = grid.arrange(dprime.p1,dprime.p2, ncol=2, top="d' by MCI status")
 summary(lm(dprime ~ rMCI_cons_bin, data=subjDatAXCPT))
-```
-
-```{r,include=FALSE}
-pdf("K:/AX-CPT/results/dprime_X_MCI.pdf")
-grid.arrange(dprime.p1,dprime.p2, ncol=2, top="d' by MCI status")
-dev.off()
 ```
 
 AX False alarm rates
@@ -261,16 +256,9 @@ axfa.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=axfarate)) +
               geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
               theme(plot.title=element_text(face="bold")) +
               theme_bw(14)
-grid.arrange(axfa.p1, axfa.p2, ncol=2, top="AX FA Rate by MCI status")
+g.ax = grid.arrange(axfa.p1, axfa.p2, ncol=2, top="AX FA Rate by MCI status")
 summary(lm(axfarate ~ rMCI_cons_bin, data=subjDatAXCPT))
 ```
-
-```{r,include=FALSE}
-pdf("K:/AX-CPT/results/axfarate_X_MCI.pdf")
-grid.arrange(axfa.p1, axfa.p2, ncol=2, top="AX FA Rate by MCI status")
-dev.off()
-```
-
 
 BX False alarm rates
 ```{r}
@@ -283,14 +271,8 @@ bxfa.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=bxfarate)) +
               geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
               theme(plot.title=element_text(face="bold")) +
               theme_bw(14)
-grid.arrange(bxfa.p1, bxfa.p2, ncol=2, top="BX FA Rate by MCI status")
+g.bx = grid.arrange(bxfa.p1, bxfa.p2, ncol=2, top="BX FA Rate by MCI status")
 summary(lm(bxfarate ~ rMCI_cons_bin, data=subjDatAXCPT))
-```
-
-```{r,include=FALSE}
-pdf("K:/AX-CPT/results/bxfarate_X_MCI.pdf")
-grid.arrange(bxfa.p1, bxfa.p2, ncol=2, top="BX FA Rate by MCI status")
-dev.off()
 ```
 
 AY False alarm rates
@@ -304,13 +286,13 @@ ayfa.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=ayfarate)) +
               geom_jitter(alpha=0.3,position=position_jitter(width = 0.1)) +
               theme(plot.title=element_text(face="bold")) +
               theme_bw(14)
-grid.arrange(ayfa.p1, ayfa.p2, ncol=2, top="AY FA Rate by MCI status")
+g.ay = grid.arrange(ayfa.p1, ayfa.p2, ncol=2, top="AY FA Rate by MCI status")
 summary(lm(ayfarate ~ rMCI_cons_bin, data=subjDatAXCPT))
 ```
 
 ```{r,include=FALSE}
-pdf("K:/AX-CPT/results/ayfarate_X_MCI.pdf")
-grid.arrange(ayfa.p1, ayfa.p2, ncol=2, top="AY FA Rate by MCI status")
+pdf("K:/AX-CPT/results/AX-CPTperformance_X_MCI.pdf", width=16,height=12)
+grid.arrange(g.dprime,g.ax,g.bx,g.ay, ncol=2,top="AX-CPT Performance by MCI status")
 dev.off()
 ```
 
@@ -438,14 +420,15 @@ ggsave("K:/AX-CPT/results/pupil_dprime.pdf",p.dprime)
 Run basic model testing interaction of Load with d'
 ```{r}
 contrasts.facLoad.dprime = rbind(
-    'Load3:dprime vs Load6:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0),
-    'Load6:dprime vs Load9:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1),
-    'Load3:dprime vs Load9:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
+    'Load3:dprime vs Load6:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0),
+    'Load6:dprime vs Load9:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0),
+    'Load3:dprime vs Load9:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0)
 )
-lme.facLoad.dprime = lmer(residPCA ~ facLoad*dprime + apoe4 + c.age_v2 + 
-                            site_v2rev + Device + acamedbin + c.DSFMAX_v2 +
-                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
-                          data=subset(pupilAXCPT, rMCI_cons_bin==0))
+lme.facLoad.dprime = lmer(residPCA ~ facLoad*(dprime + c.DSFMAX_v2) + 
+                            apoe4 + c.age_v2 + site_v2rev + Device + 
+                            acamedbin + c.afqtpcttran_v2 + 
+                            (1 | case/vetsaid), 
+                            data=subset(pupilAXCPT, rMCI_cons_bin==0))
 summary(lme.facLoad.dprime)
 summary(glht(lme.facLoad.dprime, contrasts.facLoad.dprime), 
               test = adjusted("none"))
@@ -485,10 +468,11 @@ contrasts.facLoad.log.bymeanrt = rbind(
     'Load6:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0),
     'Load3:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0)
 )
-lme.facLoad.log.bymeanrt = lmer(residPCA ~ facLoad*log.bymeanrt + apoe4 + c.age_v2 + 
-                            site_v2rev + Device + acamedbin + facLoad*c.DSFMAX_v2 +
-                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
-                          data=subset(pupilAXCPT, rMCI_cons_bin==0))
+lme.facLoad.log.bymeanrt = lmer(residPCA ~ facLoad*(log.bymeanrt + c.DSFMAX_v2) +
+                                apoe4 + c.age_v2 + site_v2rev + Device +
+                                acamedbin + c.afqtpcttran_v2 + 
+                                (1 | case/vetsaid), 
+                                data=subset(pupilAXCPT, rMCI_cons_bin==0))
 summary(lme.facLoad.log.bymeanrt)
 summary(glht(lme.facLoad.log.bymeanrt, contrasts.facLoad.log.bymeanrt), 
               test = adjusted("none"))
@@ -520,14 +504,15 @@ print(p.log.bystdrt)
 Run basic model testing interaction of Load with log std RT
 ```{r}
 contrasts.facLoad.log.bystdrt = rbind(
-    'Load3:log.bystdrt vs Load6:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0),
-    'Load6:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1),
-    'Load3:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
+    'Load3:log.bystdrt vs Load6:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0),
+    'Load6:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0),
+    'Load3:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0)
 )
-lme.facLoad.log.bystdrt = lmer(residPCA ~ facLoad*log.bystdrt + apoe4 + c.age_v2 + 
-                            site_v2rev + Device + acamedbin + c.DSFMAX_v2 +
-                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
-                          data=subset(pupilAXCPT, rMCI_cons_bin==0))
+lme.facLoad.log.bystdrt = lmer(residPCA ~ facLoad*(log.bystdrt + c.DSFMAX_v2) +
+                               apoe4 + c.age_v2 + site_v2rev + Device + 
+                               acamedbin + c.afqtpcttran_v2 + 
+                               (1 | case/vetsaid), 
+                               data=subset(pupilAXCPT, rMCI_cons_bin==0))
 summary(lme.facLoad.log.bystdrt)
 summary(glht(lme.facLoad.log.bystdrt, contrasts.facLoad.log.bystdrt), 
               test = adjusted("none"))
@@ -563,10 +548,11 @@ contrasts.facLoad.resid.bystdrt = rbind(
     'Load6:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0),
     'Load3:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0)
 )
-lme.facLoad.resid.bystdrt = lmer(residPCA ~ facLoad*resid.bystdrt + apoe4 + c.age_v2 + 
-                            site_v2rev + Device + acamedbin + facLoad*c.DSFMAX_v2 +
-                            c.afqtpcttran_v2 + (1 | case/vetsaid), 
-                          data=subset(pupilAXCPT, rMCI_cons_bin==0))
+lme.facLoad.resid.bystdrt = lmer(residPCA ~ facLoad*(resid.bystdrt + c.DSFMAX_v2)
+                                 + apoe4 + c.age_v2 + site_v2rev + Device +
+                                 acamedbin + c.afqtpcttran_v2 + 
+                                 (1 | case/vetsaid), 
+                                  data=subset(pupilAXCPT, rMCI_cons_bin==0))
 summary(lme.facLoad.resid.bystdrt)
 summary(glht(lme.facLoad.resid.bystdrt, contrasts.facLoad.resid.bystdrt), 
               test = adjusted("none"))
@@ -642,6 +628,7 @@ summary(glht(lme.facLoad.resid.bystdrt.MCI,
              contrasts.facLoad.resid.bystdrt.MCI),
              test = adjusted("none"))
 ```
+
 ----------------
 
 Plot pupil dilation by digit span max quantile
