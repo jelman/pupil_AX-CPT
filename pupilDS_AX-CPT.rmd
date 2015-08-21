@@ -95,7 +95,7 @@ pupilAXCPT %<>%
                 resid.bystdrt = resid(lm(bystdrt ~ bymeanrt, data=.)))) %>%
   inner_join(pupilAXCPT, by="vetsaid")
 
-# Create quantile groups of log RT data
+# Create quantile groups data
 qVars = c("c.DSFMAX_v2","dprime","log.bymeanrt","log.bymedianrt",
           "log.bystdrt","log.bycvrt","resid.bystdrt")
 new.qVars = qVars
@@ -120,6 +120,7 @@ subjDatAXCPT = pupilAXCPT %>%
             dplyr::select(-contains("PCA"),-contains("Load")) %>%
             group_by(vetsaid) %>%
             summarise_each(funs(first))
+#write.csv(subjDatAXCPT, "K:/AX-CPT/data/AX-CPT_subjDat.csv")
 ```
 
 How many subjects?
@@ -612,7 +613,7 @@ dev.off()
 ----------------
 # Mixed Effects Models: All MCI groups
 
-Run basic model testing interaction of Load with log mean RT
+Run model testing interaction of Load with log mean RT, digit span and MCI
 ```{r}
 contrasts.facLoad.log.bymeanrt.MCI = rbind(
     'Load3:log.bymeanrt vs Load6:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0),
@@ -620,11 +621,12 @@ contrasts.facLoad.log.bymeanrt.MCI = rbind(
     'Load3:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0,0,0)
 )
 
-lme.facLoad.log.bymeanrt.MCI = lmer(residPCA ~ facLoad*log.bymeanrt + apoe4 +
-                                   c.age_v2 + site_v2rev + Device + acamedbin +
-                                   facLoad*c.DSFMAX_v2 + facLoad*rMCI_cons_bin +
-                                   c.afqtpcttran_v2 + (1 | case/vetsaid), 
-                                data=pupilAXCPT)
+lme.facLoad.log.bymeanrt.MCI = lmer(residPCA ~ facLoad*(log.bymeanrt + 
+                                                        c.DSFMAX_v2 +
+                                                        rMCI_cons_bin) + 
+                                    apoe4 + c.age_v2 + site_v2rev + 
+                                    Device + acamedbin + c.afqtpcttran_v2 + 
+                                    (1 | case/vetsaid), data=pupilAXCPT)
 summary(lme.facLoad.log.bymeanrt.MCI)
 summary(glht(lme.facLoad.log.bymeanrt.MCI, 
              contrasts.facLoad.log.bymeanrt.MCI),
@@ -643,7 +645,7 @@ lme.log.bymeanrt.loads.MCI <- lapply(loads, function(x) {
 lapply(lme.log.bymeanrt.loads.MCI, summary)
 ```
 
-Run basic model testing interaction of Load with log std RT
+Run model testing interaction of Load with log std RT, digit span and MCI
 ```{r}
 contrasts.facLoad.log.bystdrt.MCI = rbind(
     'Load3:log.bystdrt vs Load6:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0),
@@ -651,11 +653,12 @@ contrasts.facLoad.log.bystdrt.MCI = rbind(
     'Load3:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0,0,0)
 )
 
-lme.facLoad.log.bystdrt.MCI = lmer(residPCA ~ facLoad*log.bystdrt + apoe4 +
-                                   c.age_v2 + site_v2rev + Device + acamedbin +
-                                   facLoad*c.DSFMAX_v2 + facLoad*rMCI_cons_bin +
-                                   c.afqtpcttran_v2 + (1 | case/vetsaid), 
-                                data=pupilAXCPT)
+lme.facLoad.log.bystdrt.MCI = lmer(residPCA ~ facLoad*(log.bystdrt + 
+                                                        c.DSFMAX_v2 +
+                                                        rMCI_cons_bin) + 
+                                    apoe4 + c.age_v2 + site_v2rev + 
+                                    Device + acamedbin + c.afqtpcttran_v2 + 
+                                    (1 | case/vetsaid), data=pupilAXCPT)
 summary(lme.facLoad.log.bystdrt.MCI)
 summary(glht(lme.facLoad.log.bystdrt.MCI, 
              contrasts.facLoad.log.bystdrt.MCI),
@@ -674,7 +677,7 @@ lme.log.bystdrt.loads.MCI <- lapply(loads, function(x) {
 lapply(lme.log.bystdrt.loads.MCI, summary)
 ```
 
-Run basic model testing interaction of Load with residual std RT
+Run  model testing interaction of Load with residual std RT, digit span and MCI
 ```{r}
 contrasts.facLoad.resid.bystdrt.MCI = rbind(
     'Load3:resid.bystdrt vs Load6:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0),
@@ -682,11 +685,12 @@ contrasts.facLoad.resid.bystdrt.MCI = rbind(
     'Load3:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0,0,0)
 )
 
-lme.facLoad.resid.bystdrt.MCI = lmer(residPCA ~ facLoad*resid.bystdrt + apoe4 +
-                                   c.age_v2 + site_v2rev + Device + acamedbin +
-                                   facLoad*c.DSFMAX_v2 + facLoad*rMCI_cons_bin +
-                                   c.afqtpcttran_v2 + (1 | case/vetsaid), 
-                                  data=pupilAXCPT)
+lme.facLoad.resid.bystdrt.MCI = lmer(residPCA ~ facLoad*(resid.bystdrt + 
+                                                        c.DSFMAX_v2 +
+                                                        rMCI_cons_bin) + 
+                                    apoe4 + c.age_v2 + site_v2rev + 
+                                    Device + acamedbin + c.afqtpcttran_v2 + 
+                                    (1 | case/vetsaid), data=pupilAXCPT)
 summary(lme.facLoad.resid.bystdrt.MCI)
 summary(glht(lme.facLoad.resid.bystdrt.MCI, 
              contrasts.facLoad.resid.bystdrt.MCI),
