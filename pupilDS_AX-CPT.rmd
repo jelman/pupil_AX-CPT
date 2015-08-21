@@ -32,7 +32,8 @@ Load data.
 ```{r}
 pupilAXCPT = read.csv("K:/AX-CPT/data/pupil_AX-CPT.csv", 
                          stringsAsFactors = FALSE)
-pupilAXCPT = pupilAXCPT[!is.na(pupilAXCPT$PCA) & !is.na(pupilAXCPT$rMCI_cons_v2),]
+pupilAXCPT = pupilAXCPT[!is.na(pupilAXCPT$PCA) & 
+                        !is.na(pupilAXCPT$rMCI_cons_v2),]
 pupilAXCPT = subset(pupilAXCPT, vetsa2=='vetsa2')
 str(pupilAXCPT)
 ```
@@ -183,12 +184,14 @@ Look at frequencies of MCI measures
 ```{r}
 mci.p1 = sjp.frq(subjDatAXCPT$rMCI_cons_v2, 
           title="MCI groups",
-          axisLabels.x=c("Normal","Single Domain\nNon-amnestic","Single Domain\nAmnestic"),
+          axisLabels.x=c("Normal","Single Domain\nNon-amnestic",
+                         "Single Domain\nAmnestic","Multi Domain\nNon-Amnestic",
+                         "Multi Domain Amnestic"),
           axisLimits.y = c(0,850))
 
 mci.p2 = sjp.frq(subjDatAXCPT$rMCI_cons_bin, 
           title="Binned MCI groups",
-          axisLabels.x=c("Normal","Single Domain"),
+          axisLabels.x=c("Normal","Single Domain MCI","Multi Domain MCI"),
           axisLimits.y = c(0,850))
 
 grid.arrange(mci.p1$plot,mci.p2$plot)
@@ -420,9 +423,9 @@ ggsave("K:/AX-CPT/results/pupil_dprime.pdf",p.dprime)
 Run basic model testing interaction of Load with d'
 ```{r}
 contrasts.facLoad.dprime = rbind(
-    'Load3:dprime vs Load6:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0),
-    'Load6:dprime vs Load9:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0),
-    'Load3:dprime vs Load9:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0)
+    'Load3:dprime vs Load6:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0),
+    'Load6:dprime vs Load9:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0),
+    'Load3:dprime vs Load9:dprime' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0)
 )
 lme.facLoad.dprime = lmer(residPCA ~ facLoad*(dprime + c.DSFMAX_v2) + 
                             apoe4 + c.age_v2 + site_v2rev + Device + 
@@ -464,9 +467,9 @@ print(p.log.bymeanrt)
 Run basic model testing interaction of Load with log mean RT
 ```{r}
 contrasts.facLoad.log.bymeanrt = rbind(
-    'Load3:log.bymeanrt vs Load6:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0),
-    'Load6:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0),
-    'Load3:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0)
+    'Load3:log.bymeanrt vs Load6:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0),
+    'Load6:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0),
+    'Load3:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0)
 )
 lme.facLoad.log.bymeanrt = lmer(residPCA ~ facLoad*(log.bymeanrt + c.DSFMAX_v2) +
                                 apoe4 + c.age_v2 + site_v2rev + Device +
@@ -504,9 +507,9 @@ print(p.log.bystdrt)
 Run basic model testing interaction of Load with log std RT
 ```{r}
 contrasts.facLoad.log.bystdrt = rbind(
-    'Load3:log.bystdrt vs Load6:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0),
-    'Load6:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0),
-    'Load3:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0)
+    'Load3:log.bystdrt vs Load6:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0),
+    'Load6:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0),
+    'Load3:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0)
 )
 lme.facLoad.log.bystdrt = lmer(residPCA ~ facLoad*(log.bystdrt + c.DSFMAX_v2) +
                                apoe4 + c.age_v2 + site_v2rev + Device + 
@@ -544,9 +547,9 @@ print(p.resid.bystdrt)
 Run basic model testing interaction of Load with residual std RT
 ```{r}
 contrasts.facLoad.resid.bystdrt = rbind(
-    'Load3:resid.bystdrt vs Load6:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0),
-    'Load6:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0),
-    'Load3:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0)
+    'Load3:resid.bystdrt vs Load6:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0),
+    'Load6:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0),
+    'Load3:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0)
 )
 lme.facLoad.resid.bystdrt = lmer(residPCA ~ facLoad*(resid.bystdrt + c.DSFMAX_v2)
                                  + apoe4 + c.age_v2 + site_v2rev + Device +
@@ -575,9 +578,9 @@ dev.off()
 Run basic model testing interaction of Load with log mean RT
 ```{r}
 contrasts.facLoad.log.bymeanrt.MCI = rbind(
-    'Load3:log.bymeanrt vs Load6:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0),
-    'Load6:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0,0,0),
-    'Load3:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0)
+    'Load3:log.bymeanrt vs Load6:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0),
+    'Load6:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0),
+    'Load3:log.bymeanrt vs Load9:log.bymeanrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0)
 )
 
 lme.facLoad.log.bymeanrt.MCI = lmer(residPCA ~ facLoad*log.bymeanrt + apoe4 +
@@ -594,9 +597,9 @@ summary(glht(lme.facLoad.log.bymeanrt.MCI,
 Run basic model testing interaction of Load with log std RT
 ```{r}
 contrasts.facLoad.log.bystdrt.MCI = rbind(
-    'Load3:log.bystdrt vs Load6:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0),
-    'Load6:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0,0,0),
-    'Load3:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0)
+    'Load3:log.bystdrt vs Load6:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0),
+    'Load6:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0),
+    'Load3:log.bystdrt vs Load9:log.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0)
 )
 
 lme.facLoad.log.bystdrt.MCI = lmer(residPCA ~ facLoad*log.bystdrt + apoe4 +
@@ -613,9 +616,9 @@ summary(glht(lme.facLoad.log.bystdrt.MCI,
 Run basic model testing interaction of Load with residual std RT
 ```{r}
 contrasts.facLoad.resid.bystdrt.MCI = rbind(
-    'Load3:resid.bystdrt vs Load6:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0),
-    'Load6:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0,0,0),
-    'Load3:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0)
+    'Load3:resid.bystdrt vs Load6:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0),
+    'Load6:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0),
+    'Load3:resid.bystdrt vs Load9:resid.bystdrt' = c(0,0,0,0,0,0,0,0,0,0,0,0,0,-1,1,0,0,0,0)
 )
 
 lme.facLoad.resid.bystdrt.MCI = lmer(residPCA ~ facLoad*resid.bystdrt + apoe4 +
