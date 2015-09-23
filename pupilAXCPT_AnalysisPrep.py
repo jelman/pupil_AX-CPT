@@ -14,12 +14,12 @@ from sas7bdat import SAS7BDAT
 import os
 
 ###############################
-datadir = 'K:/AX-CPT/data'
-outdir = 'K:/AX-CPT/data'
+datadir = 'K:/Experiments/Pupil_AX-CPT/data'
+outdir = 'K:/Experiments/Pupil_AX-CPT/data'
 pupil_fname = 'K:/data/Pupillometry/pupilDS_long.csv'
 cogv2_fname = 'K:/data/VETSA2_April2015/vetsa2merged_23apr2015.sas7bdat'
 cogv1_fname = 'K:/data/VETSA2_April2015/vetsa1merged_21aug2014.sas7bdat'
-cogVars_fname = 'K:/AX-CPT/data/AX-CPT_CogVariables.csv'
+cogVars_fname = 'K:/Experiments/Pupil_AX-CPT/data/AX-CPT_CogVariables.csv'
 axcpt_fname = 'K:/data/AX-CPT/AX-CPT_V2_processed.csv'
 mci_fname = 'K:/data/VETSA2_MCI.csv'
 cog_outname = 'AX-CPT_cogData.csv'

@@ -30,7 +30,7 @@ sjp.setTheme(base=theme_bw())
 
 Load data.
 ```{r}
-pupilAXCPT = read.csv("K:/AX-CPT/data/pupil_AX-CPT.csv", 
+pupilAXCPT = read.csv("K:/Experiments/Pupil_AX-CPT/data/pupil_AX-CPT.csv", 
                          stringsAsFactors = FALSE)
 pupilAXCPT = pupilAXCPT[!is.na(pupilAXCPT$PCA) & 
                         !is.na(pupilAXCPT$rMCI_cons_v2),]
@@ -44,7 +44,8 @@ Recode two-level factors to 0/1. Center continuous data.
 ## Create factors
 # Set 6 as reference level to contrast adjacent levels. Flip sign of 
 # coefficient contrast 3 vs 6 to interpret slope.
-pupilAXCPT$facLoad = factor(pupilAXCPT$Load, levels=c("6","3","9"))
+pupilAXCPT$facLoad = factor(pupilAXCPT$Load)
+pupilAXCPT$facLoad = relevel(pupilAXCPT$facLoad, ref="6")
 pupilAXCPT$rMCI_cons_v2 = factor(pupilAXCPT$rMCI_cons_v2)
 contr.backward.diff = matrix(c(-2/3, 1/3, 1/3,-1/3,-1/3,2/3), ncol = 2)
 contrasts(pupilAXCPT$facLoad) = contr.backward.diff
@@ -120,7 +121,7 @@ subjDatAXCPT = pupilAXCPT %>%
             dplyr::select(-contains("PCA"),-contains("Load")) %>%
             group_by(vetsaid) %>%
             summarise_each(funs(first))
-#write.csv(subjDatAXCPT, "K:/AX-CPT/data/AX-CPT_subjDat.csv")
+#write.csv(subjDatAXCPT, "K:/Experiments/Pupil_AX-CPT/data/AX-CPT_subjDat.csv")
 ```
 
 How many subjects?
@@ -189,7 +190,7 @@ grid.arrange(mci.p1$plot,mci.p2$plot)
 ```
 
 ```{r, include=FALSE}
-pdf("K:/AX-CPT/results/MCI_groups.pdf", width=8, height=6)
+pdf("K:/Experiments/Pupil_AX-CPT/results/MCI_groups.pdf", width=8, height=6)
 grid.arrange(mci.p1$plot,mci.p2$plot)
 dev.off()
 ```
@@ -198,13 +199,13 @@ dev.off()
 Plot pctPCA and residPCA data to check for ceiling effects on pupil dilation
 ```{r}
 pctPcaPlot = ggplot(pupilAXCPT, aes(x=pctPCA)) + 
-  geom_histogram(fill="steel blue",color="black") + 
+  geom_histogram(fill="lightsteelblue2",color="black") + 
   facet_wrap(~ Load, nrow=3) + 
   ggtitle("Histogram of pctPCA by Load") + 
   xlab("% PCA") + theme_bw() 
 
 residPcaPlot = ggplot(pupilAXCPT, aes(x=residPCA)) + 
-  geom_histogram(fill="steel blue",color="black") + 
+  geom_histogram(fill="lightsteelblue2",color="black") + 
   facet_wrap(~ Load, nrow=3) + 
   ggtitle("Histogram of residPCA by Load") + 
   xlab("PCA (adjusted for baseline)") + theme_bw() 
@@ -213,7 +214,7 @@ grid.arrange(pctPcaPlot, residPcaPlot, ncol=2)
 ```
 
 ```{r, include=FALSE}
-pdf("K:/AX-CPT/results/PCAxLoad.pdf")
+pdf("K:/Experiments/Pupil_AX-CPT/results/PCAxLoad.pdf")
 grid.arrange(pctPcaPlot, residPcaPlot, ncol=2)
 dev.off()
 ```
@@ -227,7 +228,7 @@ dev.off()
 d' by MCI group
 ```{r}
 dprime.p1 = ggplot(subjDatAXCPT, aes(x=dprime)) + 
-  geom_histogram(fill="steel blue",color="black") + 
+  geom_histogram(fill="lightsteelblue2",color="black") + 
   theme(plot.title=element_text(face="bold")) + theme_bw(14)
 
 dprime.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=dprime)) + 
@@ -242,7 +243,7 @@ summary(lm(dprime ~ rMCI_cons_bin, data=subjDatAXCPT))
 AX False alarm rates
 ```{r}
 axfa.p1 = ggplot(subjDatAXCPT, aes(x=axfarate)) + 
-  geom_histogram(fill="steel blue",color="black") + 
+  geom_histogram(fill="lightsteelblue2",color="black") + 
   theme(plot.title=element_text(face="bold")) + theme_bw(14)
 
 axfa.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=axfarate)) + 
@@ -257,7 +258,7 @@ summary(lm(axfarate ~ rMCI_cons_bin, data=subjDatAXCPT))
 BX False alarm rates
 ```{r}
 bxfa.p1 = ggplot(subjDatAXCPT, aes(x=bxfarate)) + 
-  geom_histogram(fill="steel blue",color="black") + 
+  geom_histogram(fill="lightsteelblue2",color="black") + 
   theme(plot.title=element_text(face="bold")) + theme_bw(14)
 
 bxfa.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=bxfarate)) + 
@@ -272,7 +273,7 @@ summary(lm(bxfarate ~ rMCI_cons_bin, data=subjDatAXCPT))
 AY False alarm rates
 ```{r}
 ayfa.p1 = ggplot(subjDatAXCPT, aes(x=ayfarate)) + 
-  geom_histogram(fill="steel blue",color="black") + 
+  geom_histogram(fill="lightsteelblue2",color="black") + 
   theme(plot.title=element_text(face="bold")) + theme_bw(14)
 
 ayfa.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=ayfarate)) + 
@@ -285,7 +286,7 @@ summary(lm(ayfarate ~ rMCI_cons_bin, data=subjDatAXCPT))
 ```
 
 ```{r,include=FALSE}
-pdf("K:/AX-CPT/results/AX-CPTperformance_X_MCI.pdf", width=16,height=12)
+pdf("K:/Experiments/Pupil_AX-CPT/results/AX-CPTperformance_X_MCI.pdf", width=16,height=12)
 grid.arrange(g.dprime,g.ax,g.bx,g.ay, ncol=2,top="AX-CPT Performance by MCI status")
 dev.off()
 ```
@@ -295,7 +296,7 @@ dev.off()
 BY mean reaction time
 ```{r}
 log.bymeanrt.p1 = ggplot(subjDatAXCPT, aes(x=log.bymeanrt)) + 
-  geom_histogram(fill="steel blue",color="black") + 
+  geom_histogram(fill="lightsteelblue2",color="black") + 
   theme(plot.title=element_text(face="bold")) + theme_bw()
 
 log.bymeanrt.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=log.bymeanrt)) + 
@@ -311,7 +312,7 @@ summary(lm(log.bymeanrt ~ rMCI_cons_bin, data=subjDatAXCPT))
 BY median reaction time
 ```{r}
 log.bymedianrt.p1 = ggplot(subjDatAXCPT, aes(x=log.bymedianrt)) + 
-  geom_histogram(fill="steel blue",color="black") + 
+  geom_histogram(fill="lightsteelblue2",color="black") + 
   theme(plot.title=element_text(face="bold")) + theme_bw()
 
 log.bymedianrt.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=log.bymedianrt)) + 
@@ -329,7 +330,7 @@ summary(lm(log.bymedianrt ~ rMCI_cons_bin, data=subjDatAXCPT))
 BY standard deviation reaction time
 ```{r}
 log.bystdrt.p1 = ggplot(subjDatAXCPT, aes(x=log.bystdrt)) + 
-  geom_histogram(fill="steel blue",color="black") + 
+  geom_histogram(fill="lightsteelblue2",color="black") + 
   theme(plot.title=element_text(face="bold")) + theme_bw()
 
 log.bystdrt.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=log.bystdrt)) + 
@@ -346,7 +347,7 @@ summary(lm(log.bystdrt ~ rMCI_cons_bin, data=subjDatAXCPT))
 BY CV reaction time
 ```{r}
 log.bycvrt.p1 = ggplot(subjDatAXCPT, aes(x=log.bycvrt)) + 
-  geom_histogram(fill="steel blue",color="black") + 
+  geom_histogram(fill="lightsteelblue2",color="black") + 
   theme(plot.title=element_text(face="bold")) + theme_bw()
 
 log.bycvrt.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=log.bycvrt)) + 
@@ -362,7 +363,7 @@ summary(lm(log.bycvrt ~ rMCI_cons_bin, data=subjDatAXCPT))
 BY residual standard deviation reaction time
 ```{r}
 resid.bystdrt.p1 = ggplot(subjDatAXCPT, aes(x=resid.bystdrt)) + 
-  geom_histogram(fill="steel blue",color="black") + 
+  geom_histogram(fill="lightsteelblue2",color="black") + 
   theme(plot.title=element_text(face="bold")) + theme_bw()
 
 resid.bystdrt.p2 = ggplot(subjDatAXCPT, aes(x=rMCI_cons_bin,y=resid.bystdrt)) + 
@@ -379,7 +380,7 @@ summary(lm(resid.bystdrt ~ rMCI_cons_bin, data=subjDatAXCPT))
 
 ```{r, include=FALSE}
 # Save out figure of mean, std, and residual std RT
-pdf("K:/AX-CPT/results/BY_RTxMCI.pdf", height=8, width=6)
+pdf("K:/Experiments/Pupil_AX-CPT/results/BY_RTxMCI.pdf", height=8, width=6)
 grid.arrange(log.bymeanrt.p1, log.bymeanrt.p2, log.bystdrt.p1, log.bystdrt.p2,
              resid.bystdrt.p1, resid.bystdrt.p2, ncol=2)
 dev.off()
@@ -409,7 +410,7 @@ p.dprime = summaryResidPCA.dprime %>%
             scale_color_discrete(name="d-prime\nquantile",
                                  labels=c("Lower","Upper"))
 print(p.dprime)
-ggsave("K:/AX-CPT/results/pupil_dprime.pdf",p.dprime)
+ggsave("K:/Experiments/Pupil_AX-CPT/results/pupil_dprime.pdf",p.dprime)
 ```
 
 Run basic model testing interaction of Load with d'
@@ -605,7 +606,7 @@ legend = get_legend(p.log.bymeanrt)
 p.log.bymeanrt = p.log.bymeanrt + theme(legend.position="none")
 p.log.bystdrt = p.log.bystdrt + theme(legend.position="none")
 p.resid.bystdrt = p.resid.bystdrt + theme(legend.position="none")
-pdf("K:/AX-CPT/results/pupil_rtmeasures.pdf",width=12,height=10)
+pdf("K:/Experiments/Pupil_AX-CPT/results/pupil_rtmeasures.pdf",width=12,height=10)
 grid.arrange(p.log.bymeanrt,p.log.bystdrt,p.resid.bystdrt,legend)
 dev.off()
 ```
@@ -709,6 +710,7 @@ lme.resid.bystdrt.loads.MCI <- lapply(loads, function(x) {
 lapply(lme.resid.bystdrt.loads.MCI, summary)
 ```
 ----------------
+
 # Covariate Plot 
 
 Plot pupil dilation by digit span max quantile
@@ -732,7 +734,7 @@ p.DSFMAX_v2 = summaryResidPCA.DSFMAX_v2 %>%
             scale_color_discrete(name="Max digit span\nquantile",
                                  labels=c("Lower","Upper"))
 print(p.DSFMAX_v2)
-ggsave("K:/AX-CPT/results/pupil_MaxDigitSpan.pdf", p.DSFMAX_v2)
+ggsave("K:/Experiments/Pupil_AX-CPT/results/pupil_MaxDigitSpan.pdf", p.DSFMAX_v2)
 ```
 
 Plot pupil dilation by digit span max quantile
@@ -757,14 +759,14 @@ p.MCI = summaryResidPCA.MCI %>%
                                           "Single Domain MCI",
                                           "Multi-Domain MCI"))
 print(p.MCI)
-ggsave("K:/AX-CPT/results/pupil_MCI.pdf", p.MCI)
+ggsave("K:/Experiments/Pupil_AX-CPT/results/pupil_MCI.pdf", p.MCI)
 
 ```
 
 ----------------------------
 ```{r, include=FALSE}
 #Save out analysis dataset
-write.csv(pupilAXCPT, "K:/AX-CPT/data/pupilDS_AX-CPT_AnalysisDataset.csv")
+write.csv(pupilAXCPT, "K:/Experiments/Pupil_AX-CPT/data/pupilDS_AX-CPT_AnalysisDataset.csv")
 ```
 
 ```{r}
