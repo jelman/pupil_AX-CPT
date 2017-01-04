@@ -17,7 +17,7 @@ import os
 datadir = '~/netshare/K/Projects/Pupil_AX-CPT/data'
 outdir = '~/netshare/K/Projects/Pupil_AX-CPT/data'
 pupil_fname = '~/netshare/K/data/Pupillometry/VETSA2/pupilDS_long.csv'
-cog_fname = '/home/jelman/netshare/M/PSYCH/KREMEN/Practice Effect Cognition/data/V1V2_CogData_NASAdj.csv'
+cog_fname = '/home/jelman/netshare/M/PSYCH/KREMEN/Practice Effect Cognition/data/V1V2_CogData_NASAdj_PE.csv'
 demo_fname = '~/netshare/K/data/VETSA_Demographics/VETSA_demo_vars2.csv'
 axcpt_fname = '~/netshare/K/data/AX-CPT/AX-CPT_V2.csv'
 mci_fname = '~/netshare/K/data/VETSA_Demographics/VETSA2_MCI.csv'
