@@ -296,7 +296,7 @@ p.Draw = ggplot(summaryResidPCA.dprime, aes(x=Load,y=residPCA,
 
 # Plot predicted values
 dfDpred = sjp.int(lme.facLoad.dprime.MCI, type="eff", int.term="facLoad:CPTDPRIME_V2_nasp", 
-               swap.pred=T, mdrt.values = "quart", print.plot=F)$data.list[[1]]
+               swap.pred=T, mdrt.values = "quart", prnt.plot=F)$data.list[[1]]
 levels(dfDpred$grp) = seq(length(levels(dfDpred$grp)))
 p.Dpred = ggplot(data=subset(dfDpred, !grp==3), aes(x=x, y=y, color=grp, group=grp)) + 
           geom_line(size=1) +
@@ -352,7 +352,7 @@ pDSFMAX_v2raw = summaryResidPCA.DSFMAX_v2 %>%
 
 # Plot predicted values
 dfDSFRAWpred = sjp.int(lme.facLoad.dprime.MCI, type="eff", int.term="facLoad:c.DSFMAX_V2_nasp", 
-               swap.pred=T, mdrt.values = "quart", print.plot=F)$data.list[[1]]
+               swap.pred=T, mdrt.values = "quart", prnt.plot=F)$data.list[[1]]
 levels(dfDSFRAWpred$grp) = seq(length(levels(dfDSFRAWpred$grp)))
 pDSFMAX_v2pred = ggplot(data=subset(dfDSFRAWpred, !grp==3), aes(x=x, y=y, color=grp, group=grp)) + 
           geom_line(size=1) +
@@ -407,7 +407,7 @@ p.MCIraw = summaryResidPCA.MCI %>%
 
 # Plot predicted values
 dfMCIpred = sjp.int(lme.facLoad.dprime.MCI, type="eff", int.term="facLoad:rMCI_cons_4grp", 
-               swap.pred=T, print.plot=F)$data.list[[1]]
+               swap.pred=T, prnt.plot=F)$data.list[[1]]
 pMCIpred = ggplot(data=dfMCIpred, aes(x=x, y=y, color=grp, group=grp)) + 
           geom_line(size=1) +
           geom_errorbar(width=.2,size=1, aes(ymin=conf.low,ymax=conf.high)) +
