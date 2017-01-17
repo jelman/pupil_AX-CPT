@@ -373,6 +373,10 @@ pDSFMAX_v2pred = ggplot(data=subset(dfDSFRAWpred, !grp==3), aes(x=x, y=y, color=
 gDSFMAX = arrangeGrob(pDSFMAX_v2raw, pDSFMAX_v2pred,ncol=2)
 
 ggsave("~/netshare/K/Projects/Pupil_AX-CPT/results/pupil_DSFMAX_All.png", gDSFMAX, height=6, width=12, dpi=300)
+ggsave("~/netshare/K/Projects/Pupil_AX-CPT/results/pupil_DSFMAX_All_Raw.png", pDSFMAX_v2raw, height=6, width=8, dpi=300)
+ggsave("~/netshare/K/Projects/Pupil_AX-CPT/results/pupil_DSFMAX_All_Predicted.png", pDSFMAX_v2pred, height=6, width=8, dpi=300)
+
+plot(gDSFMAX)
 ```
 
 
