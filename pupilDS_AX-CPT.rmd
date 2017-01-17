@@ -256,13 +256,13 @@ anova(lme.facLoad.dprime)
 
 Test for differences based on d prime within each level of Load
 ```{r}
-lme.dprime.loads.MCI <- lapply(loads, function(x) {
+lme.dprime.loads <- lapply(loads, function(x) {
     lmer(residPCA ~ CPTDPRIME_V2_nasp + apoe4 + c.age_v2 + site_v2rev + 
                     Device + acamedbin + c.DSFMAX_V2_nasp  + 
                     (1 | case), 
          data=filter(pupilAXCPT, Load==x))
 })
-lapply(lme.dprime.loads.MCI, summary)
+lapply(lme.dprime.loads, summary)
 ```
 
 Plot pupil dilation by d' quantile
