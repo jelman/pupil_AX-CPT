@@ -40,7 +40,6 @@ Load data.
 pupilAXCPT = read.csv("~/netshare/K/Projects/Pupil_AX-CPT/data/pupil_AX-CPT.csv", 
                          stringsAsFactors = FALSE)
 pupilAXCPT = pupilAXCPT[!is.na(pupilAXCPT$PCA) & 
-                        !is.na(pupilAXCPT$rMCI_cons_v2pe) &
                         !is.na(pupilAXCPT$CPTDPRIME_V2_nasp),]
 pupilAXCPT = subset(pupilAXCPT, (VETSAGRP=='V1V2') | (VETSAGRP=='V2AR'))
 str(pupilAXCPT)
@@ -243,24 +242,23 @@ summary(lm(CPTDPRIME_V2_nasp ~ rMCI_cons_4grp, data=subjDatAXCPT))
 # dev.off()
 ```
 
-# Mixed Effects Models: All MCI groups
+# Mixed Effects Models
 
 Run model testing interaction of Load with d prime, digit span and MCI
 ```{r}
-lme.facLoad.dprime.MCI = lmer(residPCA ~ facLoad*(CPTDPRIME_V2_nasp + 
-                                                  c.DSFMAX_V2_nasp +
-                                                  rMCI_cons_4grp) + 
+lme.facLoad.dprime = lmer(residPCA ~ facLoad*(CPTDPRIME_V2_nasp + 
+                                                  c.DSFMAX_V2_nasp) + 
                                     apoe4 + c.age_v2 + site_v2rev + Device + acamedbin +  
                                     (1 | case/vetsaid), data=pupilAXCPT)
-summary(lme.facLoad.dprime.MCI)
-anova(lme.facLoad.dprime.MCI)
+summary(lme.facLoad.dprime)
+anova(lme.facLoad.dprime)
 ```
 
 Test for differences based on d prime within each level of Load
 ```{r}
 lme.dprime.loads.MCI <- lapply(loads, function(x) {
     lmer(residPCA ~ CPTDPRIME_V2_nasp + apoe4 + c.age_v2 + site_v2rev + 
-                    Device + acamedbin + c.DSFMAX_V2_nasp + rMCI_cons_4grp  + 
+                    Device + acamedbin + c.DSFMAX_V2_nasp  + 
                     (1 | case), 
          data=filter(pupilAXCPT, Load==x))
 })
@@ -295,7 +293,7 @@ p.Draw = ggplot(summaryResidPCA.dprime, aes(x=Load,y=residPCA,
                 legend.text = element_text(size=16))
 
 # Plot predicted values
-dfDpred = sjp.int(lme.facLoad.dprime.MCI, type="eff", int.term="facLoad:CPTDPRIME_V2_nasp", 
+dfDpred = sjp.int(lme.facLoad.dprime, type="eff", int.term="facLoad:CPTDPRIME_V2_nasp", 
                swap.pred=T, mdrt.values = "quart", prnt.plot=F)$data.list[[1]]
 levels(dfDpred$grp) = seq(length(levels(dfDpred$grp)))
 p.Dpred = ggplot(data=subset(dfDpred, !grp==3), aes(x=x, y=y, color=grp, group=grp)) + 
@@ -317,6 +315,8 @@ p.Dpred = ggplot(data=subset(dfDpred, !grp==3), aes(x=x, y=y, color=grp, group=g
 gDprime = arrangeGrob(p.Draw, p.Dpred,ncol=2)
 
 ggsave("~/netshare/K/Projects/Pupil_AX-CPT/results/pupil_dprime_All.png", gDprime, height=6, width=12, dpi=300)
+ggsave("~/netshare/K/Projects/Pupil_AX-CPT/results/pupil_dprime_Raw.png", p.Draw, height=6, width=8, dpi=300)
+ggsave("~/netshare/K/Projects/Pupil_AX-CPT/results/pupil_dprime_Predicted.png", p.Dpred, height=6, width=8, dpi=300)
 ```
 
 # Covariate Plot 

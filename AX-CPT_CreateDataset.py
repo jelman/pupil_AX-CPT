@@ -146,7 +146,7 @@ def calc_hitmiss_rate(hits, fa, misses):
     hit rate = (# hits + .5)/(targets + 1)
     false alarm rate = (# FA + .5)/(# distractors + 1)
     """
-    hitrate = (hits + .5) / (hits + misses + 1.)
+    hitrate = (hits + .5) / (hits + misses + .01)
     farate = (fa + .5)/(hits + misses + 1.)
     missrate = 1. - hitrate  
     return hitrate, farate, missrate
@@ -222,7 +222,7 @@ infile = os.path.join(datapath,fname) # Input file
 cog_file = 'K:/data/VETSA2_April2015/vetsa2merged_23apr2015.sas7bdat'
 qcVars = ['vetsaid','ZAXCPT_v2','CPTCOMPLETE_v2','CPTTIM_v2',
           'CPTVERS_v2','CPTCOMPUTER_v2']
-outname = 'AX-CPT_V2_processed.csv' # Name of file to save out
+outname = 'AX-CPT_V2.csv' # Name of file to save out
 outfile = os.path.join(datapath, outname) # Output file
 #########################################################################
 
