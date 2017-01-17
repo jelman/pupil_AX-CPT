@@ -351,7 +351,7 @@ pDSFMAX_v2raw = summaryResidPCA.DSFMAX_v2 %>%
               legend.text = element_text(size=16))
 
 # Plot predicted values
-dfDSFRAWpred = sjp.int(lme.facLoad.dprime.MCI, type="eff", int.term="facLoad:c.DSFMAX_V2_nasp", 
+dfDSFRAWpred = sjp.int(lme.facLoad.dprime, type="eff", int.term="facLoad:c.DSFMAX_V2_nasp", 
                swap.pred=T, mdrt.values = "quart", prnt.plot=F)$data.list[[1]]
 levels(dfDSFRAWpred$grp) = seq(length(levels(dfDSFRAWpred$grp)))
 pDSFMAX_v2pred = ggplot(data=subset(dfDSFRAWpred, !grp==3), aes(x=x, y=y, color=grp, group=grp)) + 
@@ -375,59 +375,6 @@ gDSFMAX = arrangeGrob(pDSFMAX_v2raw, pDSFMAX_v2pred,ncol=2)
 ggsave("~/netshare/K/Projects/Pupil_AX-CPT/results/pupil_DSFMAX_All.png", gDSFMAX, height=6, width=12, dpi=300)
 ```
 
-Plot pupil dilation by MCI group
-```{r, echo=FALSE}
-summaryResidPCA.MCI = summarySEwithin(pupilAXCPT, 
-                measurevar="residPCA", 
-                idvar="vetsaid", 
-                withinvars="Load",
-                betweenvars="rMCI_cons_4grp",
-                na.rm=TRUE)
-  
-p.MCIraw = summaryResidPCA.MCI %>%
-          ggplot(., aes(x=Load,y=residPCA,
-                        color=rMCI_cons_4grp,
-                        group=rMCI_cons_4grp)) +
-        theme_bw(16) +
-        ylab("Change in Pupil Diameter\n(Adjusted for Baseline)") +
-        geom_line(size=1) +
-        geom_errorbar(width=.2,size=1, aes(ymin=residPCA-ci,ymax=residPCA+ci)) +
-        theme_bw(20) + ylab("Change in Pupil Diameter") +
-          scale_color_brewer(name="MCI Status",palette='Set1',
-                             labels=c("CN","naSMCI","aSMCI","MMCI")) + 
-        theme(plot.title = element_text(size=20),
-              axis.title = element_text(size=18),
-              axis.text.x = element_text(size=16),
-              legend.background = element_rect(fill = "transparent"),
-              legend.justification=c(1,0), legend.position=c(1,0), 
-              legend.text.align=1,
-              legend.title.align=0,
-              legend.title = element_text(size=16),
-              legend.text = element_text(size=16))
-
-# Plot predicted values
-dfMCIpred = sjp.int(lme.facLoad.dprime.MCI, type="eff", int.term="facLoad:rMCI_cons_4grp", 
-               swap.pred=T, prnt.plot=F)$data.list[[1]]
-pMCIpred = ggplot(data=dfMCIpred, aes(x=x, y=y, color=grp, group=grp)) + 
-          geom_line(size=1) +
-          geom_errorbar(width=.2,size=1, aes(ymin=conf.low,ymax=conf.high)) +
-          ylab(expression(paste("Predicted ", Delta, " Pupil Diameter"))) + xlab("Load") +
-          scale_color_brewer(name="MCI Status",palette='Set1') + 
-          scale_x_continuous(breaks=c(3,6,9)) + theme_bw(16) +
-          theme(plot.title = element_text(size=20),
-                axis.title = element_text(size=18),
-                axis.text.x = element_text(size=16),
-                legend.background = element_rect(fill = "transparent"),
-                legend.justification=c(1,0), legend.position=c(1,0), 
-                legend.text.align=1,
-                legend.title.align=0,
-                legend.title = element_text(size=16),
-                legend.text = element_text(size=16))
-
-gDSFMAX = arrangeGrob(pDSFMAX_v2raw, pDSFMAX_v2pred,ncol=2)
-
-ggsave("~/netshare/K/Projects/Pupil_AX-CPT/results/pupil_DSFMAX_All.png", gDSFMAX, height=6, width=12, dpi=300)
-```
 
 ----------------------------
 ```{r, include=FALSE}
